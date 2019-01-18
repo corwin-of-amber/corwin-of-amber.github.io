@@ -14,6 +14,19 @@
 
 Array.prototype.last    = function() { return this[this.length-1]; };
 Array.prototype.flatten = function() { return [].concat.apply([], this); };
+Array.prototype.equals  = function(other) {
+    if (!other || this.length != other.length) return false;
+    for (var i = 0, l=this.length; i < l; i++) {
+        let te = this[i], oe = other[i];
+        if (!(te instanceof Array && oe instanceof Array ? te.equals(oe) : te == oe))
+            return false;
+    }
+    return true;
+}
+Object.defineProperty(Array.prototype, "last",    {enumerable: false});
+Object.defineProperty(Array.prototype, "flatten", {enumerable: false});
+Object.defineProperty(Array.prototype, "equals",  {enumerable: false});
+
 
 /***********************************************************************/
 /* A Provider Container aggregates several containers, the main deal   */
@@ -44,9 +57,9 @@ class ProviderContainer {
             cm.editor.on('focus', evt => { this.currentFocus = cm; });
 
             // Track invalidate
-            cm.onInvalidate = stm => { this.onInvalidate(stm); };
-            cm.onMouseEnter = stm => { this.onMouseEnter(stm); };
-            cm.onMouseLeave = stm => { this.onMouseLeave(stm); };
+            cm.onInvalidate = stm       => { this.onInvalidate(stm); };
+            cm.onMouseEnter = (stm, ev) => { this.onMouseEnter(stm, ev); };
+            cm.onMouseLeave = (stm, ev) => { this.onMouseLeave(stm, ev); };
 
         });
     }
@@ -90,6 +103,10 @@ class ProviderContainer {
 
     mark(stm, mark) {
         stm.sp.mark(stm, mark);
+    }
+
+    highlight(stm, flag) {
+        stm.sp.highlight(stm, flag);
     }
 
     // Focus and movement-related operations.
@@ -155,6 +172,7 @@ class CoqManager {
             debug:   true,
             wrapper_id: 'ide-wrapper',
             base_path:  "./",
+            pkg_path: "../coq-pkgs/",  // this is awkward: package path is relative to the worker location (coq-js)
             implicit_libs: false,
             init_pkgs: ['init'],
             all_pkgs:  ['init', 'math-comp',
@@ -179,6 +197,9 @@ class CoqManager {
         this.coq.options   = this.options;
         this.coq.observers.push(this);
 
+        // Setup pretty printer for feedback and goals
+        this.pprint = new CoqPrettyPrint();
+
         // Keybindings setup
         // XXX: This should go in the panel init.
         document.addEventListener('keydown', evt => this.keyHandler(evt), true);
@@ -189,21 +210,13 @@ class CoqManager {
 
         // Panel setup 2: packages panel.
         // XXX: In the future this may also manage the downloads.
-        this.packages = new PackageManager(this.layout.packages, this.options.base_path, this.coq);
-
-        // Info
-        this.packages.pkg_info = [];
-
-        // Packages to load
-        this.packages.pkg_init = [];
-
-        // Pre-init packages
-        this.pre_packages = [];
+        this.packages = new PackageManager(this.layout.packages, this.options.pkg_path,
+                                           this.options.all_pkgs,
+                                           this.coq);
 
         // Display packages panel:
-        var pkg_panel = document.getElementById('packages-panel').parentNode;
-        pkg_panel.classList.remove('collapsed');
-        
+        this.packages.expand();
+
         requestAnimationFrame(() => this.layout.show());
 
         // Get Coq version, etc...
@@ -231,8 +244,7 @@ class CoqManager {
         this.waitForPkgs = [];
 
         // The fun starts: Load the set of packages.
-        let bp = this.options.base_path + "../coq-pkgs/";
-        this.coq.infoPkg(bp, this.options.all_pkgs);
+        this.coq.infoPkg(this.packages.pkg_root_path, this.options.all_pkgs);
     }
 
     // Provider setup
@@ -254,12 +266,16 @@ class CoqManager {
             this.goCursor();
         };
 
-        provider.onMouseEnter = stm => {
-            if (stm.coq_sid && this.doc.goals[stm.coq_sid])
-                this.layout.update_goals(this.doc.goals[stm.coq_sid]);
+        provider.onMouseEnter = (stm, ev) => {
+            if (stm.coq_sid && ev.altKey) {
+                if (this.doc.goals[stm.coq_sid])
+                    this.layout.update_goals(this.doc.goals[stm.coq_sid]);
+                else
+                    this.coq.goals(stm.coq_sid);  // XXX: async
+            }
         };
 
-        provider.onMouseLeave = stm => {
+        provider.onMouseLeave = (stm, ev) => {
             this.layout.update_goals(this.doc.goals[this.doc.sentences.last().coq_sid]);
         };
 
@@ -270,11 +286,21 @@ class CoqManager {
     feedProcessingIn(sid) {
     }
 
-    feedFileDependency(sid) {
+    feedFileDependency(sid, file, mod) {
+        let msg = `${mod} loading....`,
+            item = this.layout.log(msg, 'Info');
+        item.addClass('loading').data('mod', mod);
     }
 
-    feedFileLoaded(sid, file, mod) {
-        this.layout.log(file + ' loading.', 'Info');
+    feedFileLoaded(sid, mod, file) {
+        let item = [...this.layout.query.getElementsByClassName('loading')]
+                    .find(x => $(x).data('mod') === mod),
+            msg = `${mod} loaded.`;
+
+        if (item)
+            $(item).removeClass('loading').text(msg);
+        else
+            this.layout.log(msg, 'Info');
     }
 
     // The first state is ready.
@@ -312,7 +338,6 @@ class CoqManager {
 
         if (!stm.executed) {
             stm.executed = true;
-            this.provider.mark(stm, "clear");
             this.provider.mark(stm, "ok");
 
             // Get goals
@@ -321,112 +346,10 @@ class CoqManager {
         }
     }
 
-    // Simplifier to the "rich" format coq uses.
-    richpp2HTML(msg) {
-
-        // Elements are ...
-        if (msg.constructor !== Array) {
-            return msg;
-        }
-
-        var ret;
-        var tag, ct, id, att, m;
-        [tag, ct] = msg;
-
-        switch (tag) {
-
-        // Element(tag_of_element, att (single string), list of xml)
-        case "Element":
-            [id, att, m] = ct;
-            let imm = m.map(this.richpp2HTML, this);
-            ret = "".concat(...imm);
-            ret = `<span class="${id}">` + ret + `</span>`;
-            break;
-
-        // PCData contains a string
-        case "PCData":
-            ret = ct;
-            break;
-
-        default:
-            ret = msg;
-        }
-        return ret;
-    }
-
-    pp2HTML(msg) {
-
-        // Elements are ...
-        if (msg.constructor !== Array) {
-            return msg;
-        }
-
-        var ret;
-        var tag, ct;
-        [tag, ct] = msg;
-
-        switch (tag) {
-
-        // Element(tag_of_element, att (single string), list of xml)
-        case "Pp_glue":
-            let imm = ct.map(this.pp2HTML, this);
-            ret = "".concat(...imm);
-            // ret = `<span class="${id}">` + ret + `</span>`;
-            break;
-
-        // PCData contains a string
-        case "Pp_string":
-            ret = ct;
-            break;
-
-        // Pp_box is encoded as an array of 3.
-        case "Pp_box":
-            var vmode = this.breakMode || false;
-
-            switch(msg[1][0]) {
-            case "Pp_vbox":
-                this.breakMode = true;
-                break;
-            default:
-                this.breakMode = false;
-            }
-
-            ret = this.pp2HTML(msg[2]);
-            this.breakMode = vmode;
-            break;
-
-        // Pp_tag is encoded as an array of 3.
-        case "Pp_tag":
-            ret = this.pp2HTML(msg[2]);
-            ret = `<span class="${msg[1]}">` + ret + `</span>`;
-            break;
-
-        case "Pp_force_newline":
-            ret = "</br>";
-            break;
-
-        case "Pp_print_break":
-            if (this.breakMode) {
-                ret = "</br>";
-            } else if (msg[2] > 0) {
-                ret = "</br>";
-            } else {
-                ret = " ";
-            }
-            break;
-
-        default:
-            ret = msg;
-        }
-        return ret;
-    }
-
     // Error handler.
     handleError(sid, loc, msg) {
 
-        let err_stm;
-
-        err_stm = this.doc.stm_id[sid];
+        let err_stm = this.doc.stm_id[sid];
 
         // The sentence has already vanished! This can happen for
         // instance if the execution of an erroneous sentence is
@@ -437,7 +360,7 @@ class CoqManager {
 
         this.layout.log(msg, 'Error');
 
-        // this.error will make the cancel handler to mark the stm red
+        // this.error will make the cancel handler mark the stm red
         // instead of just clearing the mark.
         this.error.push(err_stm);
 
@@ -451,7 +374,6 @@ class CoqManager {
             this.doc.goals[sid]  = null;
             err_stm.coq_sid = null;
 
-            this.provider.mark(err_stm, "clear");
             this.provider.mark(err_stm, "error");
 
             this.coq.cancel(sid);
@@ -460,15 +382,15 @@ class CoqManager {
 
     feedMessage(sid, lvl, loc, msg) {
 
-        // var fmsg = this.richpp2HTML(msg);
-        // var fsmg = msg.toString();
-        var fmsg = this.pp2HTML(msg);
+        var fmsg = this.pprint.pp2HTML(msg);
 
-        // JSON encoding...
-        lvl = lvl[0];
+        lvl = lvl[0];  // JSON encoding
 
         if(this.options.debug)
             console.log('Message', sid, lvl, fmsg);
+
+        let stm = this.doc.stm_id[sid];
+        if (stm) stm.feedback.push({level: lvl, loc: loc, msg: msg})
 
         // XXX: highlight error location.
         if (lvl === 'Error') {
@@ -479,22 +401,6 @@ class CoqManager {
     }
 
     // Coq Message processing.
-    coqFeedback(fb) {
-
-        var feed_tag = fb.contents[0];
-        var feed_args = [fb.span_id].concat(fb.contents.slice(1));
-
-        if(this.options.debug)
-            console.log('Feedback', fb.span_id, fb.contents);
-
-        if( this['feed'+feed_tag] ) {
-            this['feed'+feed_tag].apply(this, feed_args);
-        } else {
-            console.log('Feedback type', feed_tag, 'not handled');
-        }
-
-    }
-
     coqAdded(nsid,loc) {
 
         if(this.options.debug)
@@ -520,6 +426,31 @@ class CoqManager {
         if (exec && !cur_stm.executed) {
             this.coq.exec(nsid);
         }
+    }
+
+    // Gets a request to load packages
+    coqPending(nsid, prefix, module_names) {
+        let stm = this.doc.stm_id[nsid];
+        let ontop = this.doc.sentences[this.doc.sentences.indexOf(stm) - 1].coq_sid;
+
+        /* This is needed because canceling stms may have reset
+         * the LoadPath to a previous value. */
+        this.coq.reassureLoadPath(this.packages.getLoadPath());
+
+        var pkgs_to_load = [];
+        for (let module_name of module_names) {
+            let binfo = this.packages.searchBundleInfo(prefix, module_name);
+            if (binfo && !binfo.loaded)
+                pkgs_to_load.push(binfo.desc);
+        }
+
+        if (pkgs_to_load.length > 0) {
+            console.log("Pending: loading packages", pkgs_to_load);
+            this.packages.expand();
+        }
+
+        Promise.all(pkgs_to_load.map(pkg => this.packages.startPackageDownload(pkg)))
+            .then(() => this.coq.resolve(ontop, nsid, stm.text));
     }
 
     // Gets a list of cancelled sids.
@@ -554,7 +485,7 @@ class CoqManager {
         }, this);
 
         // Update goals
-        var nsid = this.doc.sentences.last().coq_sid, 
+        var nsid = this.doc.sentences.last().coq_sid,
             hgoals = this.doc.goals[nsid];
         if (hgoals) {
             this.layout.update_goals(hgoals);
@@ -566,7 +497,7 @@ class CoqManager {
 
     coqGoalInfo(sid, goals) {
 
-        var hgoals = this.pp2HTML(goals);
+        var hgoals = this.pprint.pp2HTML(goals);
         this.doc.goals[sid] = hgoals;
 
         // XXX optimize!
@@ -577,7 +508,7 @@ class CoqManager {
 
     coqLog(level, msg) {
 
-        let rmsg = this.pp2HTML(msg);
+        let rmsg = this.pprint.pp2HTML(msg);
 
         if (this.options.debug)
             console.log(rmsg, level[0]);
@@ -588,17 +519,12 @@ class CoqManager {
     coqLibInfo(bname, bi) {
 
         this.packages.addBundleInfo(bname, bi);
-        this.packages.pkg_info[bname] = bi;
 
-        // Check if we want to load this package.
-        var rem_pkg = this.options.init_pkgs;
-        var idx = rem_pkg.indexOf(bname);
-
-        // Worker path is coq-js.
-        let bp = this.options.base_path + "../coq-pkgs/";
+        // Check if we want to load this package at startup.
+        var idx = this.options.init_pkgs.indexOf(bname);
 
         if(idx > -1) {
-            this.coq.loadPkg(bp, bname);
+            this.packages.startPackageDownload(bname);
         }
     }
 
@@ -611,42 +537,57 @@ class CoqManager {
         this.packages.onBundleLoad(bname);
 
         var init_pkgs = this.options.init_pkgs,
-            loaded_pkgs = this.packages.pkg_init;
+            wait_pkgs = this.waitForPkgs,
+            loaded_pkgs = this.packages.loaded_pkgs;
 
         if (init_pkgs.indexOf(bname) > -1) {
-            loaded_pkgs.push(bname);
-            
             // All the packages have been loaded.
             if (init_pkgs.every(x => loaded_pkgs.indexOf(x) > -1))
                 this.coqInit();
         }
+
+        if (wait_pkgs.length > 0) {
+            if (wait_pkgs.every(x => loaded_pkgs.indexOf(x) > -1)) {
+                this.enable();
+                this.packages.collapse();
+                this.waitForPkgs = [];
+            }
+        }
     }
 
-    coqCoqExn(msg) {
-        // this.layout.log(msg, "Error");
-        console.log('coqExn', msg);
+    coqCoqExn(loc, sids, msg) {
+        console.error('Coq Exception', msg);
+
+        // If error has already been reported by Feedback, bail
+        if (this.error.some(stm => stm.feedback.some(x => x.msg.equals(msg))))
+            return;
+
+        var rmsg = this.pprint.pp2HTML(msg);
+        this.layout.log(rmsg, 'Error');
     }
 
     coqJsonExn(msg) {
         // this.layout.log(msg, "Error");
-        console.log('jsonExn', msg);
+        console.error('jsonExn', msg);
     }
 
     coqCoqInfo(info) {
 
-        this.layout.proof.textContent =
-               info
-            + "\nPlease wait for the libraries to load, thanks!"
-            + "\nIf you have trouble try cleaning your browser's cache.\n";
+        this.layout.proof.textContent = info;
+
+        if (this.options.init_pkgs.length == 0)
+            this.coqInit();
+        else
+            this.layout.proof.textContent +=
+                  "\nPlease wait for the libraries to load, thanks!"
+                + "\n(If you are having trouble, try cleaning your browser's cache.)\n";
     }
 
     // Coq Init: At this point, the required libraries are loaded
     // and Coq is ready to be used.
     coqInit() {
 
-        // Hide the packages panel.
-        var pkg_panel = document.getElementById('packages-panel').parentNode;
-        pkg_panel.classList.add('collapsed');
+        this.packages.collapse();
 
         this.layout.proof.textContent +=
             "\n===> JsCoq filesystem initialized successfully!\n" +
@@ -654,35 +595,29 @@ class CoqManager {
 
         // XXXXXX: Critical point
         var load_lib = [];
-        var init_lib = this.options.init_pkgs;
 
         if (this.options.prelude) {
             load_lib.push(["Coq", "Init", "Prelude"]);
         }
 
-        let bp = this.options.base_path + "../";
+        let load_path = this.packages.getLoadPath();
 
-        let load_paths = this.packages.pkg_init.map(
-            bundle => this.packages.pkg_info[bundle].pkgs
-        ).flatten().map( pkg => pkg.pkg_id );
-
-        this.coq.init(this.options.implicit_libs, load_lib, load_paths);
-        // Done!
+        this.coq.init(this.options.implicit_libs, load_lib, load_path);
+        // Almost done!
     }
 
     goPrev(update_focus) {
 
-        // If we didn't load the prelude, prevent unloading it to
-        // workaround a bug in Coq.
-        if (this.doc.sentences.length <= 1) return;
-
-        //debugger;
         // XXX: Optimization, in case of error, but incorrect in the
         // new general framework.
         if (this.error.length > 0) {
             this.provider.mark(this.error.pop(), "clear");
             return;
         }
+
+        // If we didn't load the prelude, prevent unloading it to
+        // workaround a bug in Coq.
+        if (this.doc.sentences.length <= 1) return;
 
         var cur_stm  = this.doc.sentences.last();
         var prev_stm = this.doc.sentences[this.doc.sentences.length - 2];
@@ -788,6 +723,8 @@ class CoqManager {
         // All other keybindings are prefixed by alt.
         if (!e.altKey /*&& !e.metaKey*/) return true;
 
+        // TODO disable actions when IDE is not ready
+
         switch (e.keyCode) {
             case 13: // ENTER
             case 39: // Right arrow
@@ -881,13 +818,14 @@ class CoqManager {
                 let pkgs = args.split(' ');
                 console.log('Requested pkgs '); console.log(pkgs);
 
-                let pkg_panel = document.getElementById('packages-panel').parentNode;
-                pkg_panel.classList.remove('collapsed');
+                this.packages.expand();
 
                 this.disable();
                 this.waitForPkgs = pkgs;
 
-                pkgs.forEach(this.coq.add_pkg, this);
+                for (let pkg of pkgs) {
+                    this.packages.startPackageDownload(pkg);
+                }
 
                 return true;
 
@@ -899,6 +837,132 @@ class CoqManager {
         return false;
     }
 }
+
+
+class CoqPrettyPrint {
+
+    // Simplifier to the "rich" format coq uses.
+    richpp2HTML(msg) {
+
+        // Elements are ...
+        if (msg.constructor !== Array) {
+            return msg;
+        }
+
+        var ret;
+        var tag, ct, id, att, m;
+        [tag, ct] = msg;
+
+        switch (tag) {
+
+        // Element(tag_of_element, att (single string), list of xml)
+        case "Element":
+            [id, att, m] = ct;
+            let imm = m.map(this.richpp2HTML, this);
+            ret = "".concat(...imm);
+            ret = `<span class="${id}">` + ret + `</span>`;
+            break;
+
+        // PCData contains a string
+        case "PCData":
+            ret = ct;
+            break;
+
+        default:
+            ret = msg;
+        }
+        return ret;
+    }
+
+    pp2HTML(msg, state) {
+
+        // Elements are ...
+        if (msg.constructor !== Array) {
+            return msg;
+        }
+
+        state = state || {breakMode: 'horizontal'};
+
+        var ret;
+        var tag, ct;
+        [tag, ct] = msg;
+
+        switch (tag) {
+
+        // Element(tag_of_element, att (single string), list of xml)
+
+        // ["Pp_glue", [...elements]]
+        case "Pp_glue":
+            let imm = ct.map(x => this.pp2HTML(x, state));
+            ret = "".concat(...imm);
+            break;
+
+        // ["Pp_string", string]
+        case "Pp_string":
+            if (ct.match(/^={4}=*$/)) {
+                ret = "<hr/>";
+                state.breakMode = 'skip-vertical';
+            }
+            else if (state.breakMode === 'vertical' && ct.match(/^\ +$/)) {
+                ret = "";
+                state.margin = ct;
+            }
+            else
+                ret = ct;
+            break;
+
+        // ["Pp_box", ["Pp_vbox"/"Pp_hvbox"/"Pp_hovbox", _], content]
+        case "Pp_box":
+            var vmode = state.breakMode,
+                margin = state.margin ? state.margin.length : 0;
+
+            state.margin = null;
+
+            switch(msg[1][0]) {
+            case "Pp_vbox":
+                state.breakMode = 'vertical';
+                break;
+            default:
+                state.breakMode = 'horizontal';
+            }
+
+            ret = `<div class="Pp_box" data-mode="${state.breakMode}" data-margin="${margin}">` +
+                  this.pp2HTML(msg[2], state) +
+                  '</div>';
+            state.breakMode = vmode;
+            break;
+
+        // ["Pp_tag", tag, content]
+        case "Pp_tag":
+            ret = this.pp2HTML(msg[2], state);
+            ret = `<span class="${msg[1]}">` + ret + `</span>`;
+            break;
+
+        case "Pp_force_newline":
+            ret = "<br/>";
+            state.margin = null;
+            break;
+
+        case "Pp_print_break":
+            ret = "";
+            state.margin = null;
+            if (state.breakMode === 'vertical'|| (msg[1] == 0 && msg[2] > 0 /* XXX need to count columns etc. */)) {
+                ret = "<br/>";
+            } else if (state.breakMode === 'horizontal') {
+                ret = " ";
+            } else if (state.breakMode === 'skip-vertical') {
+                state.breakMode = 'vertical';
+            }
+            break;
+
+        default:
+            ret = msg;
+        }
+        return ret;
+    }
+
+}
+
 
 // Local Variables:
 // js-indent-level: 4
