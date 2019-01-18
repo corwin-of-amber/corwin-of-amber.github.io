@@ -2,28 +2,49 @@
 
 class PackageManager {
 
-    constructor(panel, base_path, coq) {
-        this.base_path = base_path;
-        this.panel   = panel;
-        this.bundles = {};
-        this.coq     = coq;
+    /**
+     * Creates the packages UI and loading manager.
+     *
+     * @param {Element} panel_dom <div> element to hold the package entries
+     * @param {string} pkg_root_path base URL of package locations (coq-pkgs)
+     * @param {list} pkg_names list of package names
+     * @param {CoqWorker} coq reference to the Coq worker instance to send
+     *   load requests to
+     */
+    constructor(panel_dom, pkg_root_path, pkg_names, coq) {
+        this.pkg_root_path = pkg_root_path;
+        this.pkg_names     = pkg_names;
+        this.panel         = panel_dom;
+        this.bundles       = {};
+        this.loaded_pkgs   = [];
+        this.coq           = coq;
     }
 
     addBundleInfo(bname, pkg_info) {
 
         var div  = document.createElement('div');
-        var dsel = d3.select(div);
+        var row = $(div);
 
-        dsel.data([pkg_info]);
+        row.attr('data-name', bname);
+        row.data('info', pkg_info);
 
-        dsel.append('img')
-            .attr('src', this.base_path + 'ui-images/dl.png')
-            .on('click', () => { this.startPackageDownload(); });
+        row.append($('<img>').addClass('download-icon')
+                   .click(() => { this.startPackageDownload(pkg_info.desc); }));
 
-        dsel.append('span')
-            .text(d => d.desc);
+        row.append($('<span>').text(pkg_info.desc));
 
-        this.panel.appendChild(div);
+        // Find bundle's proper place in the order of child elements
+        var place_before = null, idx = this.pkg_names.indexOf(bname);
+
+        for (let child = this.panel.firstElementChild; child;
+                 child = child.nextElementSibling) {
+            if (this.pkg_names.indexOf($(child).attr('data-name')) > idx) {
+                place_before = child;
+                break;
+            }
+        }
+
+        this.panel.insertBefore(div, place_before /* null == at end */ );
 
         var desc = pkg_info.desc;
         var pkgs = pkg_info.pkgs;
@@ -40,15 +61,41 @@ class PackageManager {
 
     }
 
-    // XXX [EG]: This needs to be tweaked, package loading could be
-    // externally initiated.
-    startPackageDownload() {
+    searchBundleInfo(prefix, module_name) {
+        /* TODO for now, prefix and suffix are ignored :\ */
+        var vo_filename = module_name[module_name.length - 1] + '.vo';
 
-        var row = d3.select(d3.event.target.parentNode);
+        for (let bundle_key in this.bundles) {
+            let bundle = this.bundles[bundle_key];
+            for (let pkg of bundle.info.pkgs) {
+                if (pkg.vo_files.some(entry => entry[0] === vo_filename))
+                    return bundle.info;
+            }
+        }
+    }
 
-        let bp = this.base_path + "../coq-pkgs/";
-        this.coq.sendCommand(["LoadPkg", bp, row.datum().desc]);
+    getLoadPath() {
+        return this.loaded_pkgs.map(
+            bundle => this.bundles[bundle].info.pkgs
+        ).flatten().map( pkg => pkg.pkg_id );
+    }
 
+    // Loads a package from the preconfigured path.
+    // pkg_name : string - name of package (e.g., 'init', 'math-comp')
+    startPackageDownload(pkg_name) {
+        var bundle = this.bundles[pkg_name], promise;
+
+        if (bundle) {
+            if (bundle.promise) return bundle.promise; /* load issued already */
+
+            bundle.promise = promise = new Promise((resolve, reject) => 
+                bundle._resolve = resolve
+            );
+        }
+
+        this.coq.loadPkg(this.pkg_root_path, pkg_name);
+
+        return promise;
     }
 
     // In all the three cases below, evt = progressInfo
@@ -68,17 +115,12 @@ class PackageManager {
 
         if (! this.bundles[bname].bar ) {
 
-            var row  = d3.select(div);
+            var row  = $(div),
+                bar = $('<div>').addClass('progressbar'),
+                egg = $('<img>').addClass('progress-egg');
 
-            var bar = row.append('div')
-                .attr('class', 'rel-pos')
-                .append('div')
-                .attr('class', 'progressbar');
-
-            var egg = bar
-                .append('img')
-                .attr('src', this.base_path + 'ui-images/egg.png')
-                .attr('class', 'progress-egg');
+            bar.append(egg);
+            row.append($('<div>').addClass('rel-pos').append(bar));
 
             this.bundles[bname].bar = bar;
             this.bundles[bname].egg = egg;
@@ -96,28 +138,41 @@ class PackageManager {
         var bar  = this.bundles[evt.bundle].bar;
         var egg  = this.bundles[evt.bundle].egg;
 
-        var progress = ++info.loaded / info.total;
-        var angle    = (progress * 360 * 15) % 360;
-        egg.style('transform', 'rotate(' + angle + 'deg)');
-        bar.style('width', progress * 100 + '%');
+        ++info.loaded; // this is not actually the number of files loaded :\
+
+        var progress = Math.min(1.0, info.loaded / info.total);
+        var angle    = (info.loaded * 15) % 360;
+        egg.css('transform', 'rotate(' + angle + 'deg)');
+        bar.css('width', progress * 100 + '%');
     }
 
     onBundleLoad(bundle) {
 
-        var info = this.bundles[bundle].info;
-        var div  = this.bundles[bundle].div;
-        var row  = d3.select(div);
+        this.loaded_pkgs.push(bundle);
 
-        row.select('.rel-pos').remove();
-            row.select('img')
-                .attr('src', this.base_path + 'ui-images/checked.png');
+        var bundle = this.bundles[bundle];
+        if (bundle._resolve) bundle._resolve();
+
+        var row  = $(bundle.div);
+
+        row.find('.rel-pos').remove();
+        row.find('img')
+            .addClass(['download-icon', 'checked']);
+    }
+
+    collapse() {
+        this.panel.parentNode.classList.add('collapsed');
+    }
+
+    expand() {
+        this.panel.parentNode.classList.remove('collapsed');
     }
 }
 
 // EG: This will be useful once we move file downloading to javascript.
 // PackagesManager
 
-class PackageDowloader {
+class PackageDownloader {
 
     constructor(row, panel) {
         this.row = row;
