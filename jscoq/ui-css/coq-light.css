@@ -53,6 +53,17 @@ a:hover {
     background: rgba(255, 00, 50, 0.4);
 }
 
+.coq-eval-ok.CodeMirror-selectedtext,
+.coq-eval-pending.CodeMirror-selectedtext,
+.coq-eval-failed.CodeMirror-selectedtext {
+    background: none;
+}
+
+.coq-eval-ok.highlight.CodeMirror-selectedtext {
+    background: #aee; 
+}
+
+
 /* Normal theme settings */
 
 .cm-s-default.CodeMirror {
@@ -96,6 +107,13 @@ a:hover {
   color: red;
 }
 
+div.CodeMirror span.CodeMirror-matchingbracket {
+  color: #939;
+  outline: 1px solid rgba(200, 0, 0, 0.3);
+  outline-offset: -1px;
+  text-shadow: 0 -1px #939;
+}
+
 /*  */
 .cm-statementend {
   /* background: #6C64FE; */
@@ -109,7 +127,7 @@ a:hover {
     color: #11aeea;
 }
 .constr\.notation {
-    color: #dd2222;
+    color: #bb2222;
 }
 .constr\.path {
     color: #0e8709;
@@ -133,7 +151,19 @@ a:hover {
     color: #432165;
 }
 .tactic\.primitive {
+    color: #333333;
 }
 .tactic\.string {
     color: #99ff99;
+}
+
+.constr\.reference:hover,
+.constr\.type:hover,
+.constr\.variable:hover,
+.constr\.notation:hover {
+    background: rgba(0,100,0,0.15);
+}
+
+.contextual-focus {
+    background: rgba(80,100,0,0.15);
 }

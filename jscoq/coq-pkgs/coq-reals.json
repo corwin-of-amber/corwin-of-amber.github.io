@@ -13,19 +13,6 @@
       ]
     },
     {
-      "pkg_id": [ "Coq", "omega" ],
-      "vo_files": [
-        [ "OmegaLemmas.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
-        [ "Omega.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
-        [ "OmegaPlugin.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
-        [ "OmegaTactic.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
-        [ "PreOmega.vo", "d41d8cd98f00b204e9800998ecf8427e" ]
-      ],
-      "cma_files": [
-        [ "omega_plugin.cmo", "d41d8cd98f00b204e9800998ecf8427e" ]
-      ]
-    },
-    {
       "pkg_id": [ "Coq", "micromega" ],
       "vo_files": [
         [ "OrderedRing.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
