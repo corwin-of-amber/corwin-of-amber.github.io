@@ -42,9 +42,9 @@
 
 (function(mod) {
   if (typeof exports == "object" && typeof module == "object") // CommonJS
-    mod(require("../../lib/codemirror"));
+    mod(require("codemirror"));
   else if (typeof define == "function" && define.amd) // AMD
-    define(["../../lib/codemirror"], mod);
+    define(["codemirror"], mod);
   else // Plain browser env
     mod(CodeMirror);
 })(function(CodeMirror) {
@@ -56,7 +56,7 @@
       'Abort', 'About', 'Add', 'All', 'Arguments', 'Asymmetric', 'Axiom',
       'Bind',
       'Canonical', 'Check', 'Class', 'Close', 'Coercion', 'CoFixpoint', 'Comments',
-      'CoInductive', 'Context', 'Constructors', 'Contextual', 'Corollary',
+      'CoInductive', 'Compute', 'Context', 'Constructors', 'Contextual', 'Corollary',
       'Defined', 'Definition', 'Delimit',
       'Fail',
       'Eval',
@@ -110,10 +110,10 @@
       'left',
       'move',
       'pattern', 'pose',
-      'refine', 'remember', 'rename', 'replace', 'revert', 'rewrite',
+      'refine', 'remember', 'rename', 'repeat', 'replace', 'revert', 'rewrite',
       'right', 'ring',
       'set', 'simpl', 'specialize', 'split', 'subst', 'suff', 'symmetry',
-      'transitivity', 'trivial',
+      'transitivity', 'trivial', 'try',
       'unfold', 'unlock', 'using',
       'vm_compute',
       'where', 'wlog'
@@ -124,6 +124,7 @@
       'by',
       'contradiction',
       'discriminate',
+      'easy',
       'exact',
       'now',
       'omega',
@@ -155,6 +156,10 @@
 
       - begin_sentence: only \s caracters seen from the last sentence.
 
+      - is_head: at first (non-comment, non-space) token of sentence.
+
+      - sentence_kind: kind of the head token.
+
       - commentLevel [:int] = Level of nested comments.
 
       - tokenize [:func] = current active tokenizer. We provide 4 main ones:
@@ -183,13 +188,19 @@
      */
     function tokenBase(stream, state) {
 
+      var at_sentence_start = state.begin_sentence;
+
+      state.is_head = false;
+
       // If any space in the input, return null.
       if(stream.eatSpace())
         return null;
 
+      if (stream.match(/[-=<]>|<-|[<>]=|\\\/|\/\\/)) return 'operator';
+
       var ch = stream.next();
 
-      if(state.begin_sentence && (/[-*+{}]/.test(ch)))
+      if(at_sentence_start && (/[-*+{}]/.test(ch)))
         return 'coq-bullet';
 
       // Preserve begin sentence after comment.
@@ -228,16 +239,6 @@
       if(ch === ')')
         return 'parenthesis';
 
-      if (ch === '~') {
-        stream.eatWhile(/\w/);
-        return 'variable-2';
-      }
-
-      if (ch === '`') {
-        stream.eatWhile(/\w/);
-        return 'quote';
-      }
-
       if (/\d/.test(ch)) {
         stream.eatWhile(/[\d]/);
         /*
@@ -257,9 +258,15 @@
       }
 
       stream.eatWhile(/\w/);
-      var cur = stream.current();
-      return words.hasOwnProperty(cur) ? words[cur] : 'variable';
+      var cur = stream.current(),
+          kind = words[cur] || 'variable';
 
+      if (at_sentence_start) {
+        state.sentence_kind = kind;
+        state.is_head = true;
+      }
+
+      return kind;
     }
 
     function tokenString(stream, state) {
@@ -302,13 +309,14 @@
 
       if(stream.eol() || stream.match(/\s/, false)) {
         state.begin_sentence = true;
+        state.sentence_kind = undefined;
         return 'statementend';
       }
     }
 
     return {
       startState: function() {
-        return {begin_sentence: true, tokenize: tokenBase, commentLevel: 0};
+        return {begin_sentence: true, is_head: false, tokenize: tokenBase, commentLevel: 0};
       },
 
       token: function(stream, state) {
