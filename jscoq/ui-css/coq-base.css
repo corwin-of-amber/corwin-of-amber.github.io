@@ -45,6 +45,10 @@ a, a:link, a:visited, a:active {
   transition: padding-right 0.5s ease;
 }
 
+#code-wrapper .CodeMirror .CodeMirror-widget {
+  line-height: 12px;  /* because some characters are too tall (due to alternative font glyph rendering) */
+}
+
 #ide-wrapper.toggled #code-wrapper {
   padding-right: 0;
 }
@@ -308,9 +312,23 @@ div.Pp_box[data-margin="2"] {
   position: absolute;
   bottom: 2px;
   left: 3px;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.9);
   font-family: monospace;
   font-size: 9pt;
   border-top: 1px solid rgba(0,0,0,0.25);
   white-space: pre-wrap;
+  max-height: 60%;
+  overflow-y: auto;
+}
+
+div.hint-package {
+  float: right;
+  margin-left: 1em;
+  color: #aaa;
+  font-size: 90%;
+  position: relative;
+  top: 1px;  /* this is safer than padding or margin, for floats */
+}
+.CodeMirror-hint-active div.hint-package {
+  color: #ddd;
 }
