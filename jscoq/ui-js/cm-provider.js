@@ -24,12 +24,11 @@ class CmCoqProvider {
                        version: 4,
                        singleLineStringErrors : false
                      },
-              lineNumbers   : true,
-              indentUnit    : 4,
-              matchBrackets : true,
+              lineNumbers       : true,
+              indentUnit        : 4,
+              matchBrackets     : true,
               styleSelectedText : true,
-              // theme         : 'blackboard',
-              keyMap        : "emacs"
+              keyMap            : "emacs"
             };
 
         if (options)
@@ -41,14 +40,29 @@ class CmCoqProvider {
             this.editor = CodeMirror(element, cmOpts);
         }
 
+        // Event handlers (to be overridden by ProviderContainer)
+        this.onInvalidate = (mark) => {};
+        this.onMouseEnter = (stm, ev) => {};
+        this.onMouseLeave = (stm, ev) => {};
+        this.onTipHover = (completion, zoom) => {};
+        this.onTipOut = () => {};
+
         this.editor.on('beforeChange', (cm, evt) => this.onCMChange(cm, evt) );
 
-        /* Handle mouse hover events */
+        // Handle mouse hover events
         var editor_element = $(this.editor.getWrapperElement());
         editor_element.on('mousemove', ev => this.onCMMouseMove(ev));
-        editor_element.on('mouseleave', ev => this.onCMMouseLeave(ev));
+        editor_element.on('mouseout', ev => this.onCMMouseLeave(ev));
+
+        this._keyHandler = this.keyHandler.bind(this);
+        this._key_bound = false;
 
         this.hover = [];
+
+        // Handle hint events
+        this.editor.on('hintHover',     completion => this.onTipHover(completion, false));
+        this.editor.on('hintZoom',      completion => this.onTipHover(completion, true));
+        this.editor.on('endCompletion', cm         => this.onTipOut());
     }
 
     focus() {
@@ -108,7 +122,7 @@ class CmCoqProvider {
         if (stm.mark) {
             let b = stm.mark.find();
             stm.start = b.from; stm.end = b.to;
-            stm.mark.clear();
+            stm.mark.clear(); this._unmarkWidgets(stm.start, stm.end);
             stm.mark = null;
         }
 
@@ -139,9 +153,9 @@ class CmCoqProvider {
             let b = stm.mark.find();
             stm.start = b.from; stm.end = b.to;
             var new_class = 
-                stm.mark.className.replace(/( highlight)?$/, flag ? ' highlight' : '')
+                stm.mark.className.replace(/( coq-highlight)?$/, flag ? ' coq-highlight' : '')
             if (new_class != stm.mark.className) {
-                stm.mark.clear();
+                stm.mark.clear(); this._unmarkWidgets(stm.start, stm.end);
                 this.markWithClass(stm, new_class);
             }
         }
@@ -152,9 +166,44 @@ class CmCoqProvider {
 
         var mark = 
             doc.markText(stm.start, stm.end, {className: className,
-                attributes: {'data-sid': stm.coq_sid}})
+                attributes: {'data-coq-sid': stm.coq_sid}});
+
+        this._markWidgetsAsWell(stm.start, stm.end, mark);
+
         mark.stm = stm;
         stm.mark = mark;
+    }
+
+    /**
+     * Hack to apply MarkedSpan CSS class formatting and attributes to widgets
+     * within mark boundaries as well. 
+     * (This is not handled by the native CodeMirror#markText.)
+     */
+    _markWidgetsAsWell(start, end, mark) {
+        var classNames = mark.className.split(/ +/);
+        var attrs = mark.attributes || {};
+        for (let w of this.editor.findMarks(start, end, x => x.widgetNode)) {
+            for (let cn of classNames)
+                w.widgetNode.classList.add(cn);
+            for (let attr in attrs)
+                w.widgetNode.setAttribute(attr, attrs[attr]);
+        }
+    }
+
+    /** 
+     * Hack contd: negates effects of _markWidgetsAsWell when mark is cleared.
+     */
+    _unmarkWidgets(start, end) {
+        for (let w of this.editor.findMarks(start, end, x => x.widgetNode)) {
+            for (let cn of [...w.widgetNode.classList]) {
+                if (/^coq-/.exec(cn))
+                    w.widgetNode.classList.remove(cn);
+            }
+            for (let attr of [...w.widgetNode.attributes]) {
+                if (/^data-coq-/.exec(attr.name))
+                    w.widgetNode.removeAttributeNode(attr);
+            }
+        }
     }
 
     getCursor() {
@@ -191,7 +240,6 @@ class CmCoqProvider {
      * @param {Pos} end ending position ({line, ch})
      */
     onlySpacesBetween(start, end) {
-        console.warn("onlySpacesBetween", start, end);
         if (start.line > end.line) return true;
         var cur = {line: start.line, ch: start.ch};
         while (cur.line < end.line) {
@@ -225,7 +273,9 @@ class CmCoqProvider {
     }
 
     _markFromElement(dom) {
-        var sid = $(dom).attr('data-sid');
+        var sid = dom.classList.contains('CodeMirror-line') ?
+                    $(dom).find('[data-coq-sid]').last().attr('data-coq-sid')
+                  : $(dom).attr('data-coq-sid');
 
         if (sid) {
             for (let mark of this.editor.getAllMarks()) {
@@ -252,11 +302,17 @@ class CmCoqProvider {
             this.hover = [mark];
             this.highlight(mark.stm, true);
             this.onMouseEnter(mark.stm, evt);
+            if (!this._key_bound) {
+                this._key_bound = true;
+                $(document).on('keydown keyup', this._keyHandler);
+            }
         }
         else {
             if (this.hover[0])
                 this.onMouseLeave(this.hover[0].stm, evt);
             this.hover = [];
+            $(document).off('keydown keyup', this._keyHandler);
+            this._key_bound = false;
         }
     }
 
@@ -268,6 +324,11 @@ class CmCoqProvider {
             this.onMouseLeave(this.hover[0].stm, evt);
             this.hover = [];
         }
+    }
+
+    keyHandler(evt) {
+        if (this.hover[0])
+            this.onMouseEnter(this.hover[0].stm, evt);
     }
 
 

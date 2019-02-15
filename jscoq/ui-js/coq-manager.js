@@ -48,6 +48,13 @@ class ProviderContainer {
         // Debug variables
         var idx = 0;
 
+        // Event handlers (to be overridden by CoqManager)
+        this.onInvalidate = (mark) => {};
+        this.onMouseEnter = (stm, ev) => {};
+        this.onMouseLeave = (stm, ev) => {};
+        this.onTipHover = (completion, zoom) => {};
+        this.onTipOut = () => {};
+
         // for (e of elms) not very covenient here due to the closure.
         elms.forEach(e => {
 
@@ -64,6 +71,8 @@ class ProviderContainer {
             cm.onMouseEnter = (stm, ev) => { this.onMouseEnter(stm, ev); };
             cm.onMouseLeave = (stm, ev) => { this.onMouseLeave(stm, ev); };
 
+            cm.onTipHover = (entity, zoom) => { this.onTipHover(entity, zoom); };
+            cm.onTipOut   = ()             => { this.onTipOut(); }
         });
     }
 
@@ -158,10 +167,11 @@ class ProviderContainer {
 /***********************************************************************/
 
 var copyOptions = function(obj, target) {
-    if (!target) target = {};
+    if (typeof obj !== 'object' || obj instanceof Array) return obj;
+    if (typeof target !== 'object' || target instanceof Array) target = {};
     for (var prop in obj) {
         if (obj.hasOwnProperty(prop)) {
-            target[prop] = obj[prop];
+            target[prop] = copyOptions(obj[prop], target[prop]);
         }
     }
     return target;
@@ -212,6 +222,9 @@ class CoqManager {
         this.contextual_info = new CoqContextualInfo($(this.layout.proof).parent(),
                                                      this.coq, this.pprint);
 
+        // Setup autocomplete
+        this.loadSymbolsFrom(this.options.base_path + 'ui-js/prelude.symb.json');
+
         // Keybindings setup
         // XXX: This should go in the panel init.
         document.addEventListener('keydown', evt => this.keyHandler(evt), true);
@@ -243,7 +256,7 @@ class CoqManager {
                                getNext: function() { return null; },
                                focus: function() { return null; }
                              };
-        this.doc.stm_id[1] = { text: "dummy sentence", coq_sid: 1, sp: dummyProvider };
+        this.doc.stm_id[1] = { text: "dummy sentence", coq_sid: 1, sp: dummyProvider, executed: true };
         this.doc.sentences = [this.doc.stm_id[1]];
 
         this.error = [];
@@ -278,10 +291,13 @@ class CoqManager {
 
         provider.onMouseEnter = (stm, ev) => {
             if (stm.coq_sid && ev.altKey) {
-                if (this.doc.goals[stm.coq_sid])
+                if (this.doc.goals[stm.coq_sid] !== undefined)
                     this.updateGoals(this.doc.goals[stm.coq_sid]);
                 else
                     this.coq.goals(stm.coq_sid);  // XXX: async
+            }
+            else {
+                this.updateGoals(this.doc.goals[this.doc.sentences.last().coq_sid]);
             }
         };
 
@@ -289,7 +305,27 @@ class CoqManager {
             this.updateGoals(this.doc.goals[this.doc.sentences.last().coq_sid]);
         };
 
+        provider.onTipHover = (entry, zoom) => {
+            var fullname = [...entry.prefix, entry.text].join('.');
+            if (entry.kind == 'lemma')
+                this.contextual_info.showCheck(fullname);
+        };
+        provider.onTipOut = () => { this.contextual_info.hide(); };
+
         return provider;
+    }
+
+    /**
+     * Reads symbols from a URL and populates CompanyCoq.vocab.
+     * @param {string} url address of .symb.json resource
+     */
+    loadSymbolsFrom(url) {
+        $.get({url, dataType: 'json'}).done(data => { 
+            CodeMirror.CompanyCoq.loadSymbols(data, /*replace_existing=*/true); 
+        })
+        .fail((_, status, msg) => {
+            console.warn(`Symbol resource available: ${url} (${status}, ${msg})`)
+        });
     }
 
     // Feedback Processing
@@ -314,17 +350,17 @@ class CoqManager {
     }
 
     // The first state is ready.
-    feedProcessed(sid) {
+    coqReady(sid) {
 
         this.layout.proof.append(document.createTextNode(
             "\nCoq worker is ready with sid = " + sid.toString() + "\n"));
             /* init libraries have already been loaded by now */
 
-        this.feedProcessed = this.feedProcessedReady;
+        //this.feedProcessed = this.feedProcessedReady;
         this.enable();
     }
 
-    feedProcessedReady(nsid) {
+    feedProcessed(nsid) {
 
         if(this.options.debug)
             console.log('State processed', nsid);
@@ -575,9 +611,10 @@ class CoqManager {
             load_lib.push(["Coq", "Init", "Prelude"]);
         }
 
-        let load_path = this.packages.getLoadPath();
+        let set_opts = {implicit_libs: this.options.implicit_libs, stm_debug: false},
+            load_path = this.packages.getLoadPath();
 
-        this.coq.init(this.options.implicit_libs, load_lib, load_path);
+        this.coq.init(set_opts, load_lib, load_path);
         // Almost done!
     }
 
@@ -857,7 +894,11 @@ class CoqContextualInfo {
         this.pprint = pprint;
         this.el = $('<div>').addClass('contextual-info').hide();
         this.is_visible = false;
+        this.is_sticky = false;
         this.focus = null;
+        this.minimal_exposure = Promise.resolve();
+
+        this.MINIMAL_EXPOSURE_DURATION = 150; // ms
 
         this.container.append(this.el);
 
@@ -865,11 +906,27 @@ class CoqContextualInfo {
         var r = String.raw,
             contextual_sel = r`.constr\.reference, .constr\.variable, .constr\.type, .constr\.notation`;
 
-        container.on('mouseenter', contextual_sel, evt => this.showFor(evt.target, evt.altKey));
-        container.on('mouseleave', contextual_sel, evt => this.hide());
+        container.on('mouseenter', contextual_sel, evt => this.onMouseEnter(evt));
+        container.on('mousedown',  contextual_sel, evt => this.onMouseDown(evt, true));
+        container.on('mouseleave', contextual_sel, evt => this.onMouseLeave(evt));
+        container.on('mouseleave',                 evt => this.onMouseLeave(evt));
+        container.on('mousedown',  evt => this.hideReq());
+
+        this.el.on('mouseenter', evt => this.hideCancel());
+        this.el.on('mousedown', evt => { this.hideReq(); evt.stopPropagation(); });
+        this.el.on('mouseover mouseout', evt => { evt.stopPropagation(); });
 
         this._keyHandler = this.keyHandler.bind(this);
         this._key_bound = false;
+    }
+
+    onMouseEnter(evt) { if (!this.is_sticky) this.showFor(evt.target, evt.altKey); }
+    onMouseLeave(evt) { if (!this.is_sticky) this.hideReq(); }
+
+    onMouseDown(evt)  { 
+        this.showFor(evt.target, evt.altKey); 
+        this.is_sticky = true;
+        evt.stopPropagation();
     }
 
     showFor(dom, alt) {
@@ -907,7 +964,7 @@ class CoqContextualInfo {
         this.is_visible = true;
         this.coq.queryPromise(0, query).then(result => {
             if (this.is_visible)
-                this.show(this.pprint.pp2HTML(result));
+                this.show(this.formatMessages(result));
         });
     }
 
@@ -915,6 +972,7 @@ class CoqContextualInfo {
         this.el.html(html);
         this.el.show();
         this.is_visible = true;
+        this.minimal_exposure = this.elapse(this.MINIMAL_EXPOSURE_DURATION);
         if (!this._key_bound) {
             this._key_bound = true;
             $(document).on('keydown keyup', this._keyHandler);
@@ -925,8 +983,18 @@ class CoqContextualInfo {
         this.container.find('.contextual-focus').removeClass('contextual-focus');
         this.el.hide();
         this.is_visible = false;
+        this.is_sticky = false;
         $(document).off('keydown keyup', this._keyHandler);
         this._key_bound = false;
+    }
+
+    hideReq() {
+        this.request_hide = true;
+        this.minimal_exposure.then(() => { if (this.request_hide) this.hide() });
+    }
+
+    hideCancel() {
+        this.request_hide = false;
     }
 
     keyHandler(evt) {
@@ -935,6 +1003,15 @@ class CoqContextualInfo {
             if (evt.altKey) this.showPrint(name);
             else            this.showCheck(name);
         }
+    }
+
+    formatMessages(msgs) {
+        return msgs.map(feedback => this.pprint.pp2HTML(feedback.msg)).join("<hr/>");
+    }
+
+    elapse(duration) {
+        return new Promise((resolve, reject) =>
+            setTimeout(resolve, duration));
     }
 }
 
