@@ -28,7 +28,7 @@ class PackageManager {
         row.attr('data-name', bname);
         row.data('info', pkg_info);
 
-        row.append($('<img>').addClass('download-icon')
+        row.append($('<button>').addClass('download-icon')
                    .click(() => { this.startPackageDownload(pkg_info.desc); }));
 
         row.append($('<span>').text(pkg_info.desc));
@@ -60,42 +60,41 @@ class PackageManager {
         pkg_info.total  = no_files;
 
         this.bundles[bname] = { div: div, info: pkg_info };
+
+        if (pkg_info.archive) {
+            var archive = new CoqPkgArchive(this.getUrl(pkg_info.archive));
+            archive.onProgress = evt => this.showPackageProgress(bname, evt);
+            this.bundles[bname].archive = archive;
+        }
+
+        this.dispatchEvent(new Event('change'));
     }
 
     addBundleZip(bname, zip, pkg_info) {
         pkg_info = pkg_info || {};
 
-        var manifest = zip.file('coq-pkg.json'),
-            manifest_process = manifest ?
-                manifest.async('text').then((data) => {
-                    var json = JSON.parse(data);
-                    for (let k in json) if (!pkg_info[k]) pkg_info[k] = json[k];
-                })
-                .catch((err) => console.warn(`malformed 'coq-pkg.json' in bundle ${bname} (${err})`))
-              : Promise.resolve();
+        var archive = new CoqPkgArchive(zip);
 
-        var entries_by_dir = {};
+        return archive.getPackageInfo().then(pi => {
+            for (let k in pi)
+                if (!pkg_info[k]) pkg_info[k] = pi[k];
 
-        zip.forEach((rel_path, entry) => {
-            var mo = /^(?:(.*)[/])(.*[.](?:vo|vio))$/.exec(rel_path);
-            if (mo) {
-                var [, dir, fn] = mo;
-                (entries_by_dir[dir] = entries_by_dir[dir] || []).push(fn);
-            }
-        });
-
-        var pkgs = [];
-        for (let dir in entries_by_dir) {
-            pkgs.push({
-                pkg_id: dir.split('/'),
-                vo_files: entries_by_dir[dir].map(x => [x])
-            });
-        }
-
-        return manifest_process.then(() => {
-            pkg_info.pkgs = pkgs;
             this.addBundleInfo(bname, pkg_info);
-            this.bundles[bname].archive = zip;
+            this.bundles[bname].archive = archive;
+        });
+    }
+
+    waitFor(init_pkgs) {
+        return new Promise((resolve, reject) => {
+            var observe = () => {
+                if (init_pkgs.every(x => this.bundles[x])) {
+                    this.removeEventListener('change', observe);
+                    resolve(init_pkgs.map(x => this.bundles[x]));
+                    return true;
+                }
+            };
+            if (!observe())
+                this.addEventListener('change', observe);
         });
     }
 
@@ -119,6 +118,12 @@ class PackageManager {
         }
     }
 
+    getUrl(resource) {
+        // Generate URL with the pkg_root_path as the base
+        return new URL(resource,
+                  new URL(this.pkg_root_path, PackageManager.scriptUrl))
+    }
+
     getLoadPath() {
         return this.loaded_pkgs.map( bname => {
             let bundle = this.bundles[bname],
@@ -127,8 +132,10 @@ class PackageManager {
         }).flatten();
     }
 
-    // Loads a package from the preconfigured path.
-    // pkg_name : string - name of package (e.g., 'init', 'math-comp')
+    /**
+     * Loads a package from the preconfigured path.
+     * @param {string} pkg_name name of package (e.g., 'init', 'math-comp')
+     */
     startPackageDownload(pkg_name) {
         var bundle = this.bundles[pkg_name], promise;
 
@@ -136,88 +143,79 @@ class PackageManager {
             if (bundle.promise) return bundle.promise; /* load issued already */
 
             if (bundle.archive) {
-                bundle.promise = promise = 
-                    this.loadDeps(bundle.info.deps)
-                    .then(() => this.unpackArchive(bundle.archive))
+                promise = 
+                    Promise.all([this.loadDeps(bundle.info.deps),
+                                 bundle.archive.unpack(this.coq)])
                     .then(() => this.onBundleLoad(pkg_name));
-
-                return promise;
             }
             else {
-                bundle.promise = promise = new Promise((resolve, reject) => 
-                    bundle._resolve = resolve
-                );
-
-                this.coq.loadPkg(this.pkg_root_path, pkg_name);
-            
-                return promise;
+                promise = 
+                    Promise.all([this.loadDeps(bundle.info.deps),
+                                 this.loadPkg(pkg_name)]);
             }
+
+            bundle.promise = promise;
+            return promise;
         }
         else {
             return Promise.reject(`bundle missing: ${pkg_name}`);
         }
     }
 
-    // In all the three cases below, evt = progressInfo
-    // bundle : string
-    // pkg    : string
-    // loaded : int
-    // total  : int
+    /**
+     * Updates the download progress bar on the UI.
+     * @param {string} bname package bundle name
+     * @param {object} info {loaded: <number>, total: <number>}
+     */
+    showPackageProgress(bname, info) {
+        var bundle = this.bundles[bname];
 
-    onBundleStart(bname) {
+        if (!bundle.bar) {
+            // Add the progress bar if it does not exist already
+            bundle.bar = $('<div>').addClass('progressbar');
+            bundle.egg = $('<div>').addClass('progress-egg');
 
-        var div  = this.bundles[bname].div;
-        // var row  = d3.select(this.panel).selectAll('div')
-        //     .filter(pkg => pkg.desc === evt.bundle_name);
+            bundle.bar.append(bundle.egg);
+            $(bundle.div).append($('<div>').addClass('rel-pos').append(bundle.bar));
+        }
 
-        // XXX: Workaround, in case this is called multiple times, add
-        // the bar only the first time. We could be smarter.
-
-        if (! this.bundles[bname].bar ) {
-
-            var row  = $(div),
-                bar = $('<div>').addClass('progressbar'),
-                egg = $('<img>').addClass('progress-egg');
-
-            bar.append(egg);
-            row.append($('<div>').addClass('rel-pos').append(bar));
-
-            this.bundles[bname].bar = bar;
-            this.bundles[bname].egg = egg;
+        if (info) {
+            var progress = Math.min(1.0, info.loaded / info.total),
+                angle    = (info.loaded * 15) % 360;
+            bundle.egg.css('transform', `rotate(${angle}deg)`);
+            bundle.bar.css('width', `${progress * 100}%`);
         }
     }
 
+    /**
+     * Marks the package download as complete, removing the progress bar.
+     * @param {string} bname package bundle name
+     */
+    showPackageCompleted(bname) {
+        var bundle = this.bundles[bname];
 
-    onPkgProgress(evt) {
-
-        // We get rid of the start notification.
-        if(!this.bundles[evt.bundle].bar)
-            this.onBundleStart(evt.bundle);
-
-        var info = this.bundles[evt.bundle].info;
-        var bar  = this.bundles[evt.bundle].bar;
-        var egg  = this.bundles[evt.bundle].egg;
-
-        ++info.loaded; // this is not actually the number of files loaded :\
-
-        var progress = Math.min(1.0, info.loaded / info.total);
-        var angle    = (info.loaded * 15) % 360;
-        egg.css('transform', 'rotate(' + angle + 'deg)');
-        bar.css('width', progress * 100 + '%');
+        $(bundle.div).find('.rel-pos').remove();
+        $(bundle.div).find('button.download-icon').addClass('checked');
     }
 
-    onBundleLoad(bundle) {
+    onBundleStart(bname) {
+        this.showPackageProgress(bname);
+    }
 
-        this.loaded_pkgs.push(bundle);
+    onPkgProgress(evt) {
+        var info = this.bundles[evt.bundle].info;
+        ++info.loaded; // this is not actually the number of files loaded :\
 
-        var bundle = this.bundles[bundle];
+        this.showPackageProgress(evt.bundle, info);
+    }
+
+    onBundleLoad(bname) {
+        this.loaded_pkgs.push(bname);
+
+        var bundle = this.bundles[bname];
         if (bundle._resolve) bundle._resolve();
 
-        var row  = $(bundle.div);
-
-        row.find('.rel-pos').remove();
-        row.find('img')
-            .addClass(['download-icon', 'checked']);
+        this.showPackageCompleted(bname);
     }
 
     loadDeps(deps) {
@@ -225,15 +223,13 @@ class PackageManager {
             deps.map(pkg => this.startPackageDownload(pkg)));
     }
 
-    unpackArchive(zip) {
-        var asyncs = [];
-        zip.forEach((rel_path, entry) => {
-            asyncs.push(
-                entry.async('arraybuffer').then(content =>
-                    this.coq.put(`/lib/${rel_path}`, content))
-            );
+    loadPkg(pkg_name) {
+        var bundle = this.bundles[pkg_name];
+
+        return new Promise((resolve, reject) => {
+            bundle._resolve = resolve 
+            this.coq.loadPkg(this.pkg_root_path, pkg_name);
         });
-        return Promise.all(asyncs);
     }
 
     collapse() {
@@ -242,6 +238,101 @@ class PackageManager {
 
     expand() {
         this.panel.parentNode.classList.remove('collapsed');
+    }
+
+    // No portable way to create EventTarget instances of our own yet;
+    // hijack the panel DOM element :\
+    dispatchEvent(evt)             { this.panel.dispatchEvent(evt); }
+    addEventListener(type, cb)     { this.panel.addEventListener(type, cb); }
+    removeEventListener(type, cb)  { this.panel.removeEventListener(type, cb); }
+}
+
+
+/**
+ * Represents a bundle stored in a Zip archive; either a remote
+ * file that has to be downloaded or a local one.
+ */
+class CoqPkgArchive {
+    constructor(resource) {
+        if (resource instanceof URL)
+            this.url = resource;
+        else if (resource.file /* JSZip-like */)
+            this.zip = resource;
+        else
+            throw new Error(`invalid resource for archive: '${resource}'`);
+
+        this.onProgress = () => {};
+    }
+
+    load() {
+        return this.zip ? Promise.resolve(this) :
+            this.download().then(data =>
+                JSZip.loadAsync(data)).then(zip =>
+                    { this.zip = zip; return this; });
+    }
+
+    download() {
+        // Here comes some boilerplate
+        return new Promise((resolve, reject) => {
+            var xhr = new XMLHttpRequest();
+            xhr.responseType = 'arraybuffer';
+            xhr.onload = () => resolve(xhr.response);
+            xhr.onprogress = (evt) => requestAnimationFrame(() => this.onProgress(evt));
+            xhr.onerror = () => reject(new Error("download failed"));
+            xhr.open('GET', this.url);
+            xhr.send();
+        });
+    }
+
+    readManifest() {
+        var manifest = this.zip.file('coq-pkg.json');
+        return manifest ?
+                manifest.async('text').then(data => JSON.parse(data))
+                .catch(err => {
+                    console.warn(`malformed 'coq-pkg.json' in bundle ${this.url || ''} (${err})`);
+                    return {}; 
+                })
+              : Promise.resolve({});
+    }
+
+    getPackageInfo() {
+        return this.readManifest().then(pkg_info => {
+
+            var entries_by_dir = {};
+
+            this.zip.forEach((rel_path, entry) => {
+                var mo = /^(?:(.*)[/])(.*[.](?:vo|vio|cm[ao]))$/.exec(rel_path);
+                if (mo) {
+                    var [, dir, fn] = mo;
+                    (entries_by_dir[dir] = entries_by_dir[dir] || []).push(fn);
+                }
+            });
+
+            var pkgs = [];
+            for (let dir in entries_by_dir) {
+                pkgs.push({
+                    pkg_id: dir.split('/'),
+                    vo_files: entries_by_dir[dir].map(x => [x])
+                });
+            }
+
+            pkg_info.pkgs = pkgs;
+            return pkg_info;
+        });
+    }
+
+    async unpack(worker) {
+        await this.load();
+
+        var asyncs = [];
+        this.zip.forEach((rel_path, entry) => {
+            if (!entry.dir)
+                asyncs.push(
+                    entry.async('arraybuffer').then(content =>
+                        worker.put(`/lib/${rel_path}`, content))
+                );
+        });
+        return Promise.all(asyncs);
     }
 }
 
@@ -310,6 +401,10 @@ class PackageDownloader {
             .attr('src', 'ui-images/checked.png');
     }
 }
+
+
+if (typeof document !== 'undefined' && document.currentScript)
+    PackageManager.scriptUrl = new URL(document.currentScript.attributes.src.value, window.location);
 
 // Local Variables:
 // js-indent-level: 4

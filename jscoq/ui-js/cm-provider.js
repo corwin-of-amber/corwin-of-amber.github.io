@@ -25,20 +25,34 @@ class CmCoqProvider {
                        singleLineStringErrors : false
                      },
               lineNumbers       : true,
-              indentUnit        : 4,
+              indentUnit        : 2,
+              tabSize           : 2,
+              indentWithTabs    : false,
               matchBrackets     : true,
               styleSelectedText : true,
-              keyMap            : "emacs"
+              dragDrop          : false, /* handled by CoqManager */
+              keyMap            : "emacs",
+              extraKeys: {
+                  'Tab': 'indentMore',
+                  'Shift-Tab': 'indentLess'
+              }
             };
 
         if (options)
             copyOptions(options, cmOpts);
 
         if (typeof element === 'string' || element instanceof String) {
-            this.editor = CodeMirror.fromTextArea(document.getElementById(element), cmOpts);
-        } else {
-            this.editor = CodeMirror(element, cmOpts);
+            element = document.getElementById(element);
         }
+        if (element.tagName === 'TEXTAREA') {
+            this.editor = CodeMirror.fromTextArea(element, cmOpts);
+        } else {
+            this.editor = new CodeMirror(element, cmOpts);
+        }
+
+        this.filename = element.getAttribute('data-filename');
+
+        if (this.filename) { this.openLocal(); this.startAutoSave(); }
 
         // Event handlers (to be overridden by ProviderContainer)
         this.onInvalidate = (mark) => {};
@@ -60,9 +74,11 @@ class CmCoqProvider {
         this.hover = [];
 
         // Handle hint events
-        this.editor.on('hintHover',     completion => this.onTipHover(completion, false));
-        this.editor.on('hintZoom',      completion => this.onTipHover(completion, true));
-        this.editor.on('endCompletion', cm         => this.onTipOut());
+        this.editor.on('hintHover',     completion     => this.onTipHover(completion, false));
+        this.editor.on('hintZoom',      completion     => this.onTipHover(completion, true));
+        this.editor.on('hintEnter',     (tok, entries) => this.onTipHover(entries[0], false));
+        this.editor.on('hintOut',       ()             => this.onTipOut());
+        this.editor.on('endCompletion', cm             => this.onTipOut());
     }
 
     focus() {
@@ -327,7 +343,8 @@ class CmCoqProvider {
     }
 
     keyHandler(evt) {
-        if (this.hover[0])
+        /* re-issue mouse enter when modifier key is pressed or released */
+        if (this.hover[0] && (evt.key === 'Meta' || evt.key === 'Alt'))
             this.onMouseEnter(this.hover[0].stm, evt);
     }
 
@@ -356,6 +373,56 @@ class CmCoqProvider {
             position = {line:next.line, ch:next.end};
         } while(type_re && !(type_re.test(next.type)));
         return next;
+    }
+
+    openFile(file) {
+        var rdr = new FileReader();
+        rdr.onload = evt => {
+            // TODO clear marks and issue invalidate
+            this.editor.setValue(evt.target.result);
+        };
+        rdr.readAsText(file, 'utf-8');
+
+        // Create local copy on edit
+        this.filename = file.name;
+        this.startAutoSave();
+    }
+
+    openLocal(filename) {
+        filename = filename || this.filename;
+
+        if (filename) {
+            var file_store = this.getLocalFileStore();
+            file_store.getItem(filename).then((text) =>
+                    { if (text !== null) this.editor.setValue(text); } );
+            this.filename = filename;
+            // TODO clear marks and issue invalidate
+        }
+    }
+
+    saveLocal() {
+        var file_store = this.getLocalFileStore();
+
+        if (this.filename) {
+            file_store.setItem(this.filename, this.editor.getValue());
+            this.dirty = false;
+        }
+    }
+
+    startAutoSave() {
+        if (!this.autosave) {
+            this.editor.on('change', () => { this.dirty = true; });
+            this.autosave = setInterval(() => { if (this.dirty) this.saveLocal(); },
+                20000);
+            window.addEventListener('beforeunload', 
+                () => { clearInterval(this.autosave); });
+        }
+    }
+
+    getLocalFileStore() {
+        if (!CmCoqProvider.file_store)
+            CmCoqProvider.file_store = localforage.createInstance({'name': 'CmCoqProvider.file_store'});
+        return CmCoqProvider.file_store;
     }
 
 }
