@@ -152,10 +152,13 @@ class ProviderContainer {
     }
 
     focus() {
-        if (this.currentFocus)
-            this.currentFocus.focus();
-        else
-            this.snippets[0].focus();
+        var sp = this.currentFocus || this.snippets[0];
+        if (sp) sp.focus();
+    }
+
+    openFile(file) {
+        var sp = this.currentFocus || this.snippets[0];
+        if (sp) sp.openFile(file);
     }
 
 }
@@ -210,6 +213,8 @@ class CoqManager {
         this.layout = new CoqLayoutClassic(this.options);
         this.layout.onAction = this.toolbarClickHandler.bind(this);
 
+        this.setupDragDrop();
+
         // Setup the Coq worker.
         this.coq           = new CoqWorker(this.options.base_path + 'coq-js/jscoq_worker.js');
         this.coq.options   = this.options;
@@ -223,7 +228,8 @@ class CoqManager {
                                                      this.coq, this.pprint);
 
         // Setup autocomplete
-        this.loadSymbolsFrom(this.options.base_path + 'ui-js/prelude.symb.json');
+        this.loadSymbolsFrom(this.options.base_path + 'ui-js/symbols/init.symb.json');
+        this.loadSymbolsFrom(this.options.base_path + 'ui-js/symbols/coq-arith.symb.json');
 
         // Keybindings setup
         // XXX: This should go in the panel init.
@@ -306,13 +312,27 @@ class CoqManager {
         };
 
         provider.onTipHover = (entry, zoom) => {
-            var fullname = [...entry.prefix, entry.text].join('.');
+            var fullname = [...entry.prefix, entry.label].join('.');
             if (entry.kind == 'lemma')
-                this.contextual_info.showCheck(fullname);
+                this.contextual_info.showCheck(fullname, /*opaque=*/true);
         };
         provider.onTipOut = () => { this.contextual_info.hide(); };
 
         return provider;
+    }
+
+    setupDragDrop() {
+        $(this.layout.ide).on('dragover', (evt) => { 
+            evt.preventDefault(); 
+        });
+        $(this.layout.ide).on('drop', (evt) => { 
+            evt.preventDefault();
+            // TODO better check file type and size before
+            //  opening
+            var file = evt.originalEvent.dataTransfer.files[0];
+            if (file)
+                this.provider.openFile(file);
+        });
     }
 
     /**
@@ -321,10 +341,10 @@ class CoqManager {
      */
     loadSymbolsFrom(url) {
         $.get({url, dataType: 'json'}).done(data => { 
-            CodeMirror.CompanyCoq.loadSymbols(data, /*replace_existing=*/true); 
+            CodeMirror.CompanyCoq.loadSymbols(data, /*replace_existing=*/false); 
         })
         .fail((_, status, msg) => {
-            console.warn(`Symbol resource available: ${url} (${status}, ${msg})`)
+            console.warn(`Symbol resource unavailable: ${url} (${status}, ${msg})`)
         });
     }
 
@@ -520,23 +540,21 @@ class CoqManager {
     coqLog(level, msg) {
 
         let rmsg = this.pprint.pp2HTML(msg);
+        
+        level = level[0];
 
-        if (this.options.debug)
-            console.log(rmsg, level[0]);
+        if (this.options.debug) {
+            if (level === 'Debug')
+                console.debug(rmsg, level)
+            else
+                console.log(rmsg, level);
+        }
 
-        this.layout.log(rmsg, level[0]);
+        this.layout.log(rmsg, level);
     }
 
     coqLibInfo(bname, bi) {
-
         this.packages.addBundleInfo(bname, bi);
-
-        // Check if we want to load this package at startup.
-        var idx = this.options.init_pkgs.indexOf(bname);
-
-        if(idx > -1) {
-            this.packages.startPackageDownload(bname);
-        }
     }
 
     coqLibProgress(evt) {
@@ -547,15 +565,8 @@ class CoqManager {
 
         this.packages.onBundleLoad(bname);
 
-        var init_pkgs = this.options.init_pkgs,
-            wait_pkgs = this.waitForPkgs,
+        var wait_pkgs = this.waitForPkgs,
             loaded_pkgs = this.packages.loaded_pkgs;
-
-        if (init_pkgs.indexOf(bname) > -1) {
-            // All the packages have been loaded.
-            if (init_pkgs.every(x => loaded_pkgs.indexOf(x) > -1))
-                this.coqInit();
-        }
 
         if (wait_pkgs.length > 0) {
             if (wait_pkgs.every(x => loaded_pkgs.indexOf(x) > -1)) {
@@ -586,12 +597,16 @@ class CoqManager {
 
         this.layout.proof.textContent = info;
 
-        if (this.options.init_pkgs.length == 0)
-            this.coqInit();
-        else
+        var pkgs = this.options.init_pkgs;
+
+        if (pkgs.length > 0)
             this.layout.proof.textContent +=
                   "\nPlease wait for the libraries to load, thanks!"
                 + "\n(If you are having trouble, try cleaning your browser's cache.)\n";
+        
+        this.packages.waitFor(pkgs)
+        .then(() => this.packages.loadDeps(pkgs))
+        .then(() => { this.coqInit(); });
     }
 
     // Coq Init: At this point, the required libraries are loaded
@@ -839,11 +854,13 @@ class CoqManager {
     }
 
     updateGoals(html) {
-        this.layout.update_goals(html);
-        this.pprint.adjustBreaks($(this.layout.proof));
-        /* Notice: in Pp-formatted text, line breaks are handled by
-         * FormatPrettyPrint rather than by the layout.
-         */
+        if (html) {
+            this.layout.update_goals(html);
+            this.pprint.adjustBreaks($(this.layout.proof));
+            /* Notice: in Pp-formatted text, line breaks are handled by
+            * FormatPrettyPrint rather than by the layout.
+            */
+        }
     }
 
     process_special(text) {
@@ -945,26 +962,30 @@ class CoqContextualInfo {
         }
     }
 
-    showCheck(name) {
-        this.focus = {identifier: name, info: 'Check'};
-        this.showQuery(`Check ${name}.`);
+    showCheck(name, opaque=false) {
+        this.focus = {identifier: name, info: 'Check', opaque};
+        this.showQuery(`Check ${name}.`, this.formatName(name));
     }
 
     showPrint(name) {
         this.focus = {identifier: name, info: 'Print'};
-        this.showQuery(`Print ${name}.`);
+        this.showQuery(`Print ${name}.`, this.formatName(name));
     }
 
     showLocate(symbol) {
         this.focus = {symbol: symbol, info: 'Locate'};
-        this.showQuery(`Locate "${symbol}".`);
+        this.showQuery(`Locate "${symbol}".`, `"${symbol}"`);
     }
 
-    showQuery(query) {
+    showQuery(query, title) {
         this.is_visible = true;
         this.coq.queryPromise(0, query).then(result => {
             if (this.is_visible)
                 this.show(this.formatMessages(result));
+        })
+        .catch(err => {
+            if (title)
+                this.show(this.formatText(title, "(not available)"));
         });
     }
 
@@ -999,7 +1020,7 @@ class CoqContextualInfo {
 
     keyHandler(evt) {
         var name = this.focus.identifier;
-        if (name) {
+        if (name && !this.focus.opaque) {
             if (evt.altKey) this.showPrint(name);
             else            this.showCheck(name);
         }
@@ -1007,6 +1028,24 @@ class CoqContextualInfo {
 
     formatMessages(msgs) {
         return msgs.map(feedback => this.pprint.pp2HTML(feedback.msg)).join("<hr/>");
+    }
+
+    formatName(name) {
+        var comps = name.split('.'),
+            span = $('<span>');
+        for (let path_el of comps.slice(0, comps.length - 1)) {
+            span.append($('<span>').addClass('constr.path').text(path_el));
+            span.append(document.createTextNode('.'));
+        }
+        span.append($('<span>').addClass('constr.reference').text(comps.last()));
+        return span;
+    }
+
+    formatText(title, msg) {
+        return $('<div>')
+            .append(typeof title === 'string' ? $('<span>').text(title) : title)
+            .append($('<br/>'))
+            .append($('<span>').addClass('message').text("  " + msg));
     }
 
     elapse(duration) {

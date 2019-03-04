@@ -38,11 +38,11 @@ a:hover {
 /* Coq settings */
 
 .coq-eval-ok {
-  background: rgba(0,0,0,0.15);
+  background: #ddd;
 }
 
 .coq-eval-ok.coq-highlight {
-  background: #ada;
+  background: #ccd;
 }
   
 .coq-eval-pending {
@@ -60,7 +60,7 @@ a:hover {
 }
 
 .coq-eval-ok.coq-highlight.CodeMirror-selectedtext {
-    background: #aee; 
+    background: #bbe; 
 }
 
 
@@ -166,4 +166,8 @@ div.CodeMirror span.CodeMirror-matchingbracket {
 
 .contextual-focus {
     background: rgba(80,100,0,0.15);
+}
+
+.contextual-info .message {
+    color: #888;
 }
