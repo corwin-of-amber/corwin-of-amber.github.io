@@ -28,11 +28,13 @@
     <textarea id="workspace">
 Check nat.
 
-Theorem plus_two : forall n : nat, n + 2 = S (S n).
+Require Import PeanoNat.
+
+Theorem plus__two : forall n : nat, n + 2 = S (S n).
 Proof.
-  induction n.
-  - simpl. reflexivity.
-  - simpl. rewrite IHn. reflexivity.
+  intro n. rewrite Nat.add_comm.
+  simpl.
+  reflexivity.
 Qed.
 
 
