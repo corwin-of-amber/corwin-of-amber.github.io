@@ -4,7 +4,14 @@
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <meta name="description" content="An Online IDE for the Coq Theorem Prover" />
 
-    <title>Use Coq in Your Browser: The Js Coq Theorem Prover Online IDE!</title>
+    <!-- 
+    <script src="node_modules/nwjs-kremlin/reload.js"></script>
+    <script type="text/javascript">
+    Reload.ignore('coq-external', 'coq-pkgs', 'ui-external');
+    Reload.ignore(/[.](tmp|ml|cmo|cmi|byte)$/)
+    </script> <!-- -->
+
+    <title>jsCoq - The Coq Theorem Prover Online IDE</title>
   </head>
 
 <body>
@@ -21,11 +28,13 @@
     <textarea id="workspace">
 Check nat.
 
-Theorem plus_two : forall n : nat, n + 2 = S (S n).
+Require Import PeanoNat.
+
+Theorem plus__two : forall n : nat, n + 2 = S (S n).
 Proof.
-  induction n.
-  - simpl. reflexivity.
-  - simpl. rewrite IHn. reflexivity.
+  intro n. rewrite Nat.add_comm.
+  simpl.
+  reflexivity.
 Qed.
 
 
