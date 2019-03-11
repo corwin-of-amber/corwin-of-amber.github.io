@@ -51,6 +51,7 @@ class CmCoqProvider {
         }
 
         this.filename = element.getAttribute('data-filename');
+        this.autosave_interval = 20000 /*ms*/;
 
         if (this.filename) { this.openLocal(); this.startAutoSave(); }
 
@@ -66,7 +67,7 @@ class CmCoqProvider {
         // Handle mouse hover events
         var editor_element = $(this.editor.getWrapperElement());
         editor_element.on('mousemove', ev => this.onCMMouseMove(ev));
-        editor_element.on('mouseout', ev => this.onCMMouseLeave(ev));
+        editor_element.on('mouseleave', ev => this.onCMMouseLeave(ev));
 
         this._keyHandler = this.keyHandler.bind(this);
         this._key_bound = false;
@@ -137,6 +138,7 @@ class CmCoqProvider {
 
         if (stm.mark) {
             let b = stm.mark.find();
+            if (!b) return;  /* mark has been deleted altogether; fail silently */
             stm.start = b.from; stm.end = b.to;
             stm.mark.clear(); this._unmarkWidgets(stm.start, stm.end);
             stm.mark = null;
@@ -165,15 +167,17 @@ class CmCoqProvider {
     }
 
     highlight(stm, flag) {
-        if (stm.mark) {
-            let b = stm.mark.find();
-            stm.start = b.from; stm.end = b.to;
-            var new_class = 
-                stm.mark.className.replace(/( coq-highlight)?$/, flag ? ' coq-highlight' : '')
-            if (new_class != stm.mark.className) {
-                stm.mark.clear(); this._unmarkWidgets(stm.start, stm.end);
-                this.markWithClass(stm, new_class);
-            }
+        if (stm.mark && stm.coq_sid) {
+            var spans = $(this.editor.getWrapperElement())
+                        .find(`[data-coq-sid=${stm.coq_sid}]`),
+                c = 'coq-highlight';
+            /* Update the spans directly to avoid having to destroy and     */
+            /* re-create the spans.                                         */
+            /* (re-creating elements under cursor messes with mouse events) */
+            if (flag) spans.addClass(c); 
+            else      spans.removeClass(c);
+            stm.mark.className =
+                stm.mark.className.replace(/( coq-highlight)?$/, flag ? ' coq-highlight' : '');
         }
     }
 
@@ -375,17 +379,25 @@ class CmCoqProvider {
         return next;
     }
 
+    load(text, filename, dirty=false) {
+        if (this.autosave && this.dirty) saveLocal();
+
+        this.editor.setValue(text);
+        this.filename = filename;
+        this.dirty = dirty;
+        if (filename) this.startAutoSave();
+        // TODO clear marks and issue invalidate
+    }
+
     openFile(file) {
         var rdr = new FileReader();
-        rdr.onload = evt => {
-            // TODO clear marks and issue invalidate
-            this.editor.setValue(evt.target.result);
-        };
-        rdr.readAsText(file, 'utf-8');
-
-        // Create local copy on edit
-        this.filename = file.name;
-        this.startAutoSave();
+        return new Promise((resolve, reject) => {
+            rdr.onload = evt => {
+                this.load(evt.target.result, file.name);
+                resolve(evt.target.result);
+            };
+            rdr.readAsText(file, 'utf-8');
+        });
     }
 
     openLocal(filename) {
@@ -393,17 +405,14 @@ class CmCoqProvider {
 
         if (filename) {
             var file_store = this.getLocalFileStore();
-            file_store.getItem(filename).then((text) =>
-                    { if (text !== null) this.editor.setValue(text); } );
-            this.filename = filename;
-            // TODO clear marks and issue invalidate
+            return file_store.getItem(filename).then((text) =>
+                { this.load(text || "", filename); return text; });
         }
     }
 
     saveLocal() {
-        var file_store = this.getLocalFileStore();
-
         if (this.filename) {
+            var file_store = this.getLocalFileStore();
             file_store.setItem(this.filename, this.editor.getValue());
             this.dirty = false;
         }
@@ -413,13 +422,16 @@ class CmCoqProvider {
         if (!this.autosave) {
             this.editor.on('change', () => { this.dirty = true; });
             this.autosave = setInterval(() => { if (this.dirty) this.saveLocal(); },
-                20000);
+                this.autosave_interval);
             window.addEventListener('beforeunload', 
-                () => { clearInterval(this.autosave); });
+                () => { clearInterval(this.autosave);
+                        if (this.dirty) this.saveLocal(); });
         }
     }
 
-    getLocalFileStore() {
+    getLocalFileStore() { return CmCoqProvider.getLocalFileStore(); }
+
+    static getLocalFileStore() {
         if (!CmCoqProvider.file_store)
             CmCoqProvider.file_store = localforage.createInstance({'name': 'CmCoqProvider.file_store'});
         return CmCoqProvider.file_store;

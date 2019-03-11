@@ -4,14 +4,7 @@
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <meta name="description" content="An Online IDE for the Coq Theorem Prover" />
 
-    <!-- 
-    <script src="node_modules/nwjs-kremlin/reload.js"></script>
-    <script type="text/javascript">
-    Reload.ignore('coq-external', 'coq-pkgs', 'ui-external');
-    Reload.ignore(/[.](tmp|ml|cmo|cmi|byte)$/)
-    </script> <!-- -->
-
-    <title>jsCoq - The Coq Theorem Prover Online IDE</title>
+    <title>Use Coq in Your Browser: The Js Coq Theorem Prover Online IDE!</title>
   </head>
 
 <body>
@@ -28,13 +21,11 @@
     <textarea id="workspace">
 Check nat.
 
-Require Import PeanoNat.
-
-Theorem plus__two : forall n : nat, n + 2 = S (S n).
+Theorem plus_two : forall n : nat, n + 2 = S (S n).
 Proof.
-  intro n. rewrite Nat.add_comm.
-  simpl.
-  reflexivity.
+  induction n.
+  - simpl. reflexivity.
+  - simpl. rewrite IHn. reflexivity.
 Qed.
 
 
@@ -74,7 +65,7 @@ Qed.
         prelude:   true,
         base_path: './',
         init_pkgs: ['init'],
-        all_pkgs:  ['init', 'coq-base', 'coq-numbers', 'coq-collections', 'coq-arith', 'coq-reals', 'math-comp'],
+        all_pkgs:  ['init', 'coq-base', 'coq-collections', 'coq-arith', 'coq-reals', 'math-comp'],
         implicit_libs: true,
         editor: { mode: { 'company-coq': true }, keyMap: 'default' }
     };

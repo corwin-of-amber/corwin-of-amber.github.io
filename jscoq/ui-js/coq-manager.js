@@ -340,12 +340,21 @@ class CoqManager {
      * Reads symbols from a URL and populates CompanyCoq.vocab.
      * @param {string} url address of .symb.json resource
      */
-    loadSymbolsFrom(url) {
+    loadSymbolsFrom(url, scope="globals") {
         $.get({url, dataType: 'json'}).done(data => { 
-            CodeMirror.CompanyCoq.loadSymbols(data, /*replace_existing=*/false); 
+            CodeMirror.CompanyCoq.loadSymbols(data, scope, /*replace_existing=*/false); 
         })
         .fail((_, status, msg) => {
             console.warn(`Symbol resource unavailable: ${url} (${status}, ${msg})`)
+        });
+    }
+
+    updateLocalSymbols() {
+        this.coq.inspectPromise(["CurrentFile"])
+        .then(bunch => {
+            CodeMirror.CompanyCoq.loadSymbols(
+                { lemmas: bunch.map(CoqIdentifier.ofKerName) }, 
+                'locals', /*replace_existing=*/true)
         });
     }
 
@@ -406,9 +415,11 @@ class CoqManager {
             stm.executed = true;
             this.provider.mark(stm, "ok");
 
-            // Get goals
-            if (nsid == this.doc.sentences.last().coq_sid)
+            // Get goals and active definitions
+            if (nsid == this.doc.sentences.last().coq_sid) {
                 this.coq.goals(nsid);
+                this.updateLocalSymbols();
+            }
         }
     }
 
@@ -428,7 +439,7 @@ class CoqManager {
         if (lvl === 'Error') {
             this.handleError(sid, loc, fmsg);
         } else {
-            this.layout.log(fmsg, lvl);
+            this.layout.log(fmsg, lvl, {'data-coq-sid': sid});
         }
     }
 
@@ -462,23 +473,25 @@ class CoqManager {
         let ontop_finished =    // assumes that exec is harmless if ontop was executed already...
             this.coq.execPromise(ontop.coq_sid);
 
-        var pkgs_to_load = [];
+        var pkg_deps = new Set();
         for (let module_name of module_names) {
-            let binfo = this.packages.searchBundleInfo(prefix, module_name);
-            if (binfo && !binfo.loaded)
-                pkgs_to_load.push(binfo.desc);
+            let binfo = this.packages.searchModule(prefix, module_name);
+            if (binfo)
+                for (let d of binfo.deps) pkg_deps.add(d);
         }
+
+        pkg_deps = [...pkg_deps.values()];
 
         var cleanup = () => {};
 
-        if (pkgs_to_load.length > 0) {
-            console.log("Pending: loading packages", pkgs_to_load);
+        if (pkg_deps.length > 0) {
+            console.log("Pending: loading packages", pkg_deps);
             this.disable();
             this.packages.expand();
             cleanup = () => { this.packages.collapse(); this.enable(); }
         }
 
-        this.packages.loadDeps(pkgs_to_load).then(() => ontop_finished)
+        this.packages.loadDeps(pkg_deps).then(() => ontop_finished)
             .then(() => {
                 this.coq.reassureLoadPath(this.packages.getLoadPath());
                 this.coq.resolve(ontop.coq_sid, nsid, stm.text);
@@ -519,23 +532,25 @@ class CoqManager {
 
         // Update goals
         var stm = this.doc.sentences.last(),
-            hgoals = this.doc.goals[stm.nsid];
+            hgoals = this.doc.goals[stm.coq_sid];
         if (hgoals) {
             this.updateGoals(hgoals);
         }
         else if (stm.executed) {
-            this.coq.goals(stm.nsid); // no goals fetched for current statement, ask worker
+            this.coq.goals(stm.coq_sid); // no goals fetched for current statement, ask worker
         }
     }
 
     coqGoalInfo(sid, goals) {
 
-        var hgoals = this.pprint.pp2HTML(goals);
-        this.doc.goals[sid] = hgoals;
+        if (goals) {
+            var hgoals = this.pprint.pp2HTML(goals);
+            this.doc.goals[sid] = hgoals;
 
-        // XXX optimize!
-        // if(!this.goTarget)
-        this.updateGoals(hgoals);
+            // XXX optimize!
+            // if(!this.goTarget)
+            this.updateGoals(hgoals);
+        }
     }
 
     coqLog(level, msg) {
@@ -1062,6 +1077,30 @@ class CoqContextualInfo {
     }
 }
 
+
+class CoqIdentifier {
+    constructor(prefix, label) {
+        this.prefix = prefix;
+        this.label = label;
+    }
+
+    toString() { return [...this.prefix, this.label].join('.'); }
+
+    /**
+     * Constructs an identifier from a Coq Names.KerName.t.
+     * @param {array} param0 serialized form of KerName (from SearchResults).
+     */
+    static ofKerName([kername, modpath, dirpath, label]) {
+        /**/ console.assert(kername === 'KerName') /**/
+        var modsuff = [];
+        while (modpath[0] == 'MPdot') {
+            modsuff.push(modpath[2]);
+            modpath = modpath[1];
+        }
+        /**/ console.assert(modpath[0] === 'MPfile'); /**/
+        return new CoqIdentifier(modpath[1].slice().reverse().concat(modsuff), label);
+    }
+}
 
 // Local Variables:
 // js-indent-level: 4
