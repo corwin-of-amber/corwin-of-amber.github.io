@@ -3,6 +3,35 @@
   "deps": [ "coq-base", "coq-collections" ],
   "pkgs": [
     {
+      "pkg_id": [ "Coq", "Numbers", "Natural", "Peano" ],
+      "vo_files": [ [ "NPeano.vo", "d41d8cd98f00b204e9800998ecf8427e" ] ],
+      "cma_files": []
+    },
+    {
+      "pkg_id": [ "Coq", "Numbers", "Integer", "Abstract" ],
+      "vo_files": [
+        [ "ZProperties.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZLcm.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZMul.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZMulOrder.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZParity.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZBits.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZAdd.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZMaxMin.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZBase.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZDivFloor.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZAddOrder.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZPow.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZLt.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZDivTrunc.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZAxioms.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZDivEucl.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZSgnAbs.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZGcd.vo", "d41d8cd98f00b204e9800998ecf8427e" ]
+      ],
+      "cma_files": []
+    },
+    {
       "pkg_id": [ "Coq", "setoid_ring" ],
       "vo_files": [
         [ "Cring.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
@@ -151,6 +180,107 @@
   ],
   "archive": "coq-arith.coq-pkg",
   "modDeps": {
+    "Coq.Numbers.Natural.Peano.NPeano": [
+      "Coq.Arith.PeanoNat",
+      "Coq.Arith.Even",
+      "Coq.Numbers.Natural.Abstract.NAxioms"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZProperties": [
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.Integer.Abstract.ZMaxMin",
+      "Coq.Numbers.Integer.Abstract.ZSgnAbs",
+      "Coq.Numbers.Integer.Abstract.ZParity",
+      "Coq.Numbers.Integer.Abstract.ZPow",
+      "Coq.Numbers.Integer.Abstract.ZDivTrunc",
+      "Coq.Numbers.Integer.Abstract.ZDivFloor",
+      "Coq.Numbers.Integer.Abstract.ZGcd",
+      "Coq.Numbers.Integer.Abstract.ZLcm",
+      "Coq.Numbers.NatInt.NZLog",
+      "Coq.Numbers.NatInt.NZSqrt",
+      "Coq.Numbers.Integer.Abstract.ZBits"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZLcm": [
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.Integer.Abstract.ZMulOrder",
+      "Coq.Numbers.Integer.Abstract.ZSgnAbs",
+      "Coq.Numbers.Integer.Abstract.ZGcd",
+      "Coq.Numbers.Integer.Abstract.ZDivTrunc",
+      "Coq.Numbers.Integer.Abstract.ZDivFloor"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZMul": [ "Coq.Numbers.Integer.Abstract.ZAdd" ],
+    "Coq.Numbers.Integer.Abstract.ZMulOrder": [ "Coq.Numbers.Integer.Abstract.ZAddOrder" ],
+    "Coq.Numbers.Integer.Abstract.ZParity": [
+      "Coq.Bool.Bool",
+      "Coq.Numbers.Integer.Abstract.ZMulOrder",
+      "Coq.Numbers.NatInt.NZParity"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZBits": [
+      "Coq.Bool.Bool",
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.Integer.Abstract.ZMulOrder",
+      "Coq.Numbers.Integer.Abstract.ZPow",
+      "Coq.Numbers.Integer.Abstract.ZDivFloor",
+      "Coq.Numbers.Integer.Abstract.ZSgnAbs",
+      "Coq.Numbers.Integer.Abstract.ZParity",
+      "Coq.Numbers.NatInt.NZLog"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZAdd": [ "Coq.Numbers.Integer.Abstract.ZBase" ],
+    "Coq.Numbers.Integer.Abstract.ZMaxMin": [
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.Integer.Abstract.ZMulOrder",
+      "Coq.Structures.GenericMinMax"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZBase": [
+      "Coq.Logic.Decidable",
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.NatInt.NZProperties"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZDivFloor": [
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.Integer.Abstract.ZMulOrder",
+      "Coq.Numbers.Integer.Abstract.ZSgnAbs",
+      "Coq.Numbers.NatInt.NZDiv"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZAddOrder": [ "Coq.Numbers.Integer.Abstract.ZLt" ],
+    "Coq.Numbers.Integer.Abstract.ZPow": [
+      "Coq.Bool.Bool",
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.Integer.Abstract.ZMulOrder",
+      "Coq.Numbers.Integer.Abstract.ZParity",
+      "Coq.Numbers.Integer.Abstract.ZSgnAbs",
+      "Coq.Numbers.NatInt.NZPow"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZLt": [ "Coq.Numbers.Integer.Abstract.ZMul" ],
+    "Coq.Numbers.Integer.Abstract.ZDivTrunc": [
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.Integer.Abstract.ZMulOrder",
+      "Coq.Numbers.Integer.Abstract.ZSgnAbs",
+      "Coq.Numbers.NatInt.NZDiv"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZAxioms": [
+      "Coq.Numbers.NatInt.NZAxioms",
+      "Coq.Bool.Bool",
+      "Coq.Numbers.NatInt.NZParity",
+      "Coq.Numbers.NatInt.NZPow",
+      "Coq.Numbers.NatInt.NZSqrt",
+      "Coq.Numbers.NatInt.NZLog",
+      "Coq.Numbers.NatInt.NZGcd",
+      "Coq.Numbers.NatInt.NZDiv",
+      "Coq.Numbers.NatInt.NZBits"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZDivEucl": [
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.Integer.Abstract.ZMulOrder",
+      "Coq.Numbers.Integer.Abstract.ZSgnAbs",
+      "Coq.Numbers.NatInt.NZDiv"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZSgnAbs": [ "Coq.Numbers.Integer.Abstract.ZMulOrder" ],
+    "Coq.Numbers.Integer.Abstract.ZGcd": [
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.Integer.Abstract.ZMulOrder",
+      "Coq.Numbers.Integer.Abstract.ZSgnAbs",
+      "Coq.Numbers.NatInt.NZGcd"
+    ],
     "Coq.setoid_ring.Cring": [
       "Coq.Lists.List",
       "Coq.Setoids.Setoid",

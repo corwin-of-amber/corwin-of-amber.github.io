@@ -56,6 +56,52 @@
       "cma_files": []
     },
     {
+      "pkg_id": [ "Coq", "FSets" ],
+      "vo_files": [
+        [ "FSetDecide.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FMaps.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FMapFacts.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FSetList.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FSetFacts.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FMapFullAVL.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FSetProperties.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FSetInterface.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FSetWeakList.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FMapList.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FSetPositive.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FSetToFiniteSet.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FMapInterface.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FMapWeakList.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FSetCompat.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FMapPositive.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FSetEqProperties.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FSets.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FMapAVL.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FSetBridge.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "FSetAVL.vo", "d41d8cd98f00b204e9800998ecf8427e" ]
+      ],
+      "cma_files": []
+    },
+    {
+      "pkg_id": [ "Coq", "MSets" ],
+      "vo_files": [
+        [ "MSets.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "MSetEqProperties.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "MSetPositive.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "MSetWeakList.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "MSetList.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "MSetInterface.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "MSetToFiniteSet.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "MSetRBT.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "MSetGenTree.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "MSetDecide.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "MSetProperties.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "MSetAVL.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "MSetFacts.vo", "d41d8cd98f00b204e9800998ecf8427e" ]
+      ],
+      "cma_files": []
+    },
+    {
       "pkg_id": [ "Coq", "Sorting" ],
       "vo_files": [
         [ "PermutEq.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
@@ -213,6 +259,236 @@
       "Coq.Arith.Le",
       "Coq.Sets.Finite_sets_facts"
     ],
+    "Coq.FSets.FSetDecide": [
+      "Coq.Logic.Decidable",
+      "Coq.Setoids.Setoid",
+      "Coq.Structures.DecidableTypeEx",
+      "Coq.FSets.FSetFacts",
+      "Coq.FSets.FSetInterface"
+    ],
+    "Coq.FSets.FMaps": [
+      "Coq.Structures.OrderedType",
+      "Coq.Structures.OrderedTypeEx",
+      "Coq.Structures.OrderedTypeAlt",
+      "Coq.Structures.DecidableType",
+      "Coq.Structures.DecidableTypeEx",
+      "Coq.FSets.FMapInterface",
+      "Coq.FSets.FMapPositive",
+      "Coq.FSets.FMapFacts",
+      "Coq.FSets.FMapWeakList",
+      "Coq.FSets.FMapList"
+    ],
+    "Coq.FSets.FMapFacts": [
+      "Coq.Bool.Bool",
+      "Coq.Structures.DecidableType",
+      "Coq.Structures.DecidableTypeEx",
+      "Coq.Structures.OrderedType",
+      "Coq.Classes.Morphisms",
+      "Coq.FSets.FMapInterface"
+    ],
+    "Coq.FSets.FSetList": [
+      "Coq.FSets.FSetInterface",
+      "Coq.FSets.FSetCompat",
+      "Coq.MSets.MSetList",
+      "Coq.Structures.Orders",
+      "Coq.Structures.OrdersAlt"
+    ],
+    "Coq.FSets.FSetFacts": [ "Coq.Structures.DecidableTypeEx", "Coq.FSets.FSetInterface" ],
+    "Coq.FSets.FMapFullAVL": [
+      "Coq.funind.FunInd",
+      "Coq.funind.Recdef",
+      "Coq.FSets.FMapInterface",
+      "Coq.FSets.FMapList",
+      "Coq.ZArith.ZArith",
+      "Coq.ZArith.Int",
+      "Coq.FSets.FMapAVL",
+      "Coq.micromega.Lia"
+    ],
+    "Coq.FSets.FSetProperties": [
+      "Coq.FSets.FSetInterface",
+      "Coq.Structures.DecidableTypeEx",
+      "Coq.FSets.FSetFacts",
+      "Coq.FSets.FSetDecide"
+    ],
+    "Coq.FSets.FSetInterface": [
+      "Coq.Bool.Bool",
+      "Coq.Structures.OrderedType",
+      "Coq.Structures.DecidableType"
+    ],
+    "Coq.FSets.FSetWeakList": [
+      "Coq.FSets.FSetInterface",
+      "Coq.Structures.Equalities",
+      "Coq.FSets.FSetCompat",
+      "Coq.MSets.MSetWeakList"
+    ],
+    "Coq.FSets.FMapList": [ "Coq.funind.FunInd", "Coq.FSets.FMapInterface" ],
+    "Coq.FSets.FSetPositive": [
+      "Coq.Bool.Bool",
+      "Coq.PArith.BinPos",
+      "Coq.Structures.OrderedType",
+      "Coq.Structures.OrderedTypeEx",
+      "Coq.FSets.FSetInterface"
+    ],
+    "Coq.FSets.FSetToFiniteSet": [
+      "Coq.Sets.Ensembles",
+      "Coq.Sets.Finite_sets",
+      "Coq.FSets.FSetInterface",
+      "Coq.FSets.FSetProperties",
+      "Coq.Structures.OrderedTypeEx",
+      "Coq.Structures.DecidableTypeEx"
+    ],
+    "Coq.FSets.FMapInterface": [
+      "Coq.Bool.Bool",
+      "Coq.Structures.DecidableType",
+      "Coq.Structures.OrderedType"
+    ],
+    "Coq.FSets.FMapWeakList": [ "Coq.funind.FunInd", "Coq.FSets.FMapInterface" ],
+    "Coq.FSets.FSetCompat": [
+      "Coq.FSets.FSetInterface",
+      "Coq.FSets.FSetFacts",
+      "Coq.MSets.MSetInterface",
+      "Coq.MSets.MSetFacts"
+    ],
+    "Coq.FSets.FMapPositive": [
+      "Coq.Bool.Bool",
+      "Coq.Structures.OrderedType",
+      "Coq.ZArith.ZArith",
+      "Coq.Structures.OrderedTypeEx",
+      "Coq.FSets.FMapInterface"
+    ],
+    "Coq.FSets.FSetEqProperties": [
+      "Coq.FSets.FSetProperties",
+      "Coq.Bool.Zerob",
+      "Coq.Bool.Sumbool",
+      "Coq.omega.Omega",
+      "Coq.Structures.DecidableTypeEx"
+    ],
+    "Coq.FSets.FSets": [
+      "Coq.Structures.OrderedType",
+      "Coq.Structures.OrderedTypeEx",
+      "Coq.Structures.OrderedTypeAlt",
+      "Coq.Structures.DecidableType",
+      "Coq.Structures.DecidableTypeEx",
+      "Coq.FSets.FSetInterface",
+      "Coq.FSets.FSetBridge",
+      "Coq.FSets.FSetFacts",
+      "Coq.FSets.FSetDecide",
+      "Coq.FSets.FSetProperties",
+      "Coq.FSets.FSetEqProperties",
+      "Coq.FSets.FSetWeakList",
+      "Coq.FSets.FSetList",
+      "Coq.FSets.FSetPositive",
+      "Coq.FSets.FSetAVL"
+    ],
+    "Coq.FSets.FMapAVL": [
+      "Coq.funind.FunInd",
+      "Coq.FSets.FMapInterface",
+      "Coq.FSets.FMapList",
+      "Coq.ZArith.ZArith",
+      "Coq.ZArith.Int"
+    ],
+    "Coq.FSets.FSetBridge": [ "Coq.FSets.FSetInterface" ],
+    "Coq.FSets.FSetAVL": [
+      "Coq.FSets.FSetInterface",
+      "Coq.ZArith.ZArith",
+      "Coq.ZArith.Int",
+      "Coq.FSets.FSetCompat",
+      "Coq.MSets.MSetAVL",
+      "Coq.Structures.Orders",
+      "Coq.Structures.OrdersAlt"
+    ],
+    "Coq.MSets.MSets": [
+      "Coq.Structures.Orders",
+      "Coq.Structures.OrdersEx",
+      "Coq.Structures.OrdersAlt",
+      "Coq.Structures.Equalities",
+      "Coq.MSets.MSetInterface",
+      "Coq.MSets.MSetFacts",
+      "Coq.MSets.MSetDecide",
+      "Coq.MSets.MSetProperties",
+      "Coq.MSets.MSetEqProperties",
+      "Coq.MSets.MSetWeakList",
+      "Coq.MSets.MSetList",
+      "Coq.MSets.MSetPositive",
+      "Coq.MSets.MSetAVL"
+    ],
+    "Coq.MSets.MSetEqProperties": [
+      "Coq.MSets.MSetProperties",
+      "Coq.Bool.Zerob",
+      "Coq.Bool.Sumbool",
+      "Coq.omega.Omega",
+      "Coq.Structures.DecidableTypeEx"
+    ],
+    "Coq.MSets.MSetPositive": [
+      "Coq.Bool.Bool",
+      "Coq.PArith.BinPos",
+      "Coq.Structures.Orders",
+      "Coq.Structures.OrdersEx",
+      "Coq.MSets.MSetInterface"
+    ],
+    "Coq.MSets.MSetWeakList": [ "Coq.MSets.MSetInterface" ],
+    "Coq.MSets.MSetList": [
+      "Coq.MSets.MSetInterface",
+      "Coq.Structures.OrdersFacts",
+      "Coq.Structures.OrdersLists",
+      "Coq.Logic.Eqdep_dec"
+    ],
+    "Coq.MSets.MSetInterface": [
+      "Coq.Bool.Bool",
+      "Coq.Lists.SetoidList",
+      "Coq.Classes.RelationClasses",
+      "Coq.Classes.Morphisms",
+      "Coq.Classes.RelationPairs",
+      "Coq.Structures.Equalities",
+      "Coq.Structures.Orders",
+      "Coq.Structures.OrdersFacts"
+    ],
+    "Coq.MSets.MSetToFiniteSet": [
+      "Coq.Sets.Ensembles",
+      "Coq.Sets.Finite_sets",
+      "Coq.MSets.MSetInterface",
+      "Coq.MSets.MSetProperties",
+      "Coq.Structures.OrdersEx"
+    ],
+    "Coq.MSets.MSetRBT": [
+      "Coq.MSets.MSetGenTree",
+      "Coq.Bool.Bool",
+      "Coq.Lists.List",
+      "Coq.PArith.BinPos",
+      "Coq.PArith.Pnat",
+      "Coq.Setoids.Setoid",
+      "Coq.Lists.SetoidList",
+      "Coq.Arith.PeanoNat"
+    ],
+    "Coq.MSets.MSetGenTree": [
+      "Coq.funind.FunInd",
+      "Coq.Structures.Orders",
+      "Coq.Structures.OrdersFacts",
+      "Coq.MSets.MSetInterface",
+      "Coq.Arith.PeanoNat"
+    ],
+    "Coq.MSets.MSetDecide": [
+      "Coq.Logic.Decidable",
+      "Coq.Setoids.Setoid",
+      "Coq.Structures.DecidableTypeEx",
+      "Coq.MSets.MSetFacts",
+      "Coq.MSets.MSetInterface"
+    ],
+    "Coq.MSets.MSetProperties": [
+      "Coq.MSets.MSetInterface",
+      "Coq.Structures.DecidableTypeEx",
+      "Coq.Structures.OrdersLists",
+      "Coq.MSets.MSetFacts",
+      "Coq.MSets.MSetDecide"
+    ],
+    "Coq.MSets.MSetAVL": [
+      "Coq.funind.FunInd",
+      "Coq.MSets.MSetInterface",
+      "Coq.MSets.MSetGenTree",
+      "Coq.ZArith.BinInt",
+      "Coq.ZArith.Int"
+    ],
+    "Coq.MSets.MSetFacts": [ "Coq.Structures.DecidableTypeEx", "Coq.MSets.MSetInterface" ],
     "Coq.Sorting.PermutEq": [
       "Coq.Relations.Relations",
       "Coq.Setoids.Setoid",
