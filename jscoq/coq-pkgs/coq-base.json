@@ -185,9 +185,952 @@
       "pkg_id": [ "Coq", "Strings" ],
       "vo_files": [
         [ "Ascii.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "BinaryString.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "HexString.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "OctalString.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
         [ "String.vo", "d41d8cd98f00b204e9800998ecf8427e" ]
       ],
       "cma_files": []
+    },
+    {
+      "pkg_id": [ "Coq", "Numbers" ],
+      "vo_files": [
+        [ "NumPrelude.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NaryFunctions.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "DecimalPos.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "DecimalZ.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "BinNums.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "DecimalFacts.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "DecimalNat.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "DecimalN.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "DecimalString.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "AltBinNotations.vo", "d41d8cd98f00b204e9800998ecf8427e" ]
+      ],
+      "cma_files": []
+    },
+    {
+      "pkg_id": [ "Coq", "Numbers", "NatInt" ],
+      "vo_files": [
+        [ "NZSqrt.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NZDomain.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NZParity.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NZMulOrder.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NZBits.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NZMul.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NZOrder.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NZAxioms.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NZGcd.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NZAddOrder.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NZBase.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NZPow.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NZAdd.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NZProperties.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NZDiv.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NZLog.vo", "d41d8cd98f00b204e9800998ecf8427e" ]
+      ],
+      "cma_files": []
+    },
+    {
+      "pkg_id": [ "Coq", "Numbers", "Natural", "Abstract" ],
+      "vo_files": [
+        [ "NPow.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NOrder.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NDiv.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NLog.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NAdd.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NGcd.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NProperties.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NMulOrder.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NSqrt.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NParity.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NBits.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NLcm.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NBase.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NDefOps.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NSub.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NMaxMin.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NAddOrder.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NAxioms.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NIso.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "NStrongRec.vo", "d41d8cd98f00b204e9800998ecf8427e" ]
+      ],
+      "cma_files": []
+    },
+    {
+      "pkg_id": [ "Coq", "Numbers", "Natural", "Peano" ],
+      "vo_files": [ [ "NPeano.vo", "d41d8cd98f00b204e9800998ecf8427e" ] ],
+      "cma_files": []
+    },
+    {
+      "pkg_id": [ "Coq", "Numbers", "Integer", "Abstract" ],
+      "vo_files": [
+        [ "ZProperties.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZLcm.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZMul.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZMulOrder.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZParity.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZBits.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZAdd.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZMaxMin.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZBase.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZDivFloor.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZAddOrder.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZPow.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZLt.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZDivTrunc.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZAxioms.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZDivEucl.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZSgnAbs.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "ZGcd.vo", "d41d8cd98f00b204e9800998ecf8427e" ]
+      ],
+      "cma_files": []
+    },
+    {
+      "pkg_id": [ "Coq", "Arith" ],
+      "vo_files": [
+        [ "Wf_nat.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "Minus.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "Le.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "Plus.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "Gt.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "Lt.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "PeanoNat.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
+        [ "Compare_dec.vo", "d41d8cd98f00b204e9800998ecf8427e" ]
+      ],
+      "cma_files": []
     }
-  ]
+  ],
+  "archive": "coq-base.coq-pkg",
+  "modDeps": {
+    "Coq.Logic.Eqdep_dec": [ "Coq.Logic.EqdepFacts" ],
+    "Coq.Logic.ProofIrrelevanceFacts": [ "Coq.Logic.EqdepFacts" ],
+    "Coq.Logic.Epsilon": [ "Coq.Logic.ChoiceFacts" ],
+    "Coq.Logic.PropExtensionality": [ "Coq.Logic.ClassicalFacts" ],
+    "Coq.Logic.Description": [ "Coq.Logic.ChoiceFacts" ],
+    "Coq.Logic.ClassicalEpsilon": [ "Coq.Logic.Classical", "Coq.Logic.ChoiceFacts" ],
+    "Coq.Logic.ClassicalFacts": [
+      "Coq.Logic.PropExtensionalityFacts",
+      "Coq.Logic.Hurkens",
+      "Coq.Arith.PeanoNat",
+      "Coq.Arith.Wf_nat",
+      "Coq.Classes.RelationClasses"
+    ],
+    "Coq.Logic.ClassicalUniqueChoice": [ "Coq.Logic.Classical", "Coq.Setoids.Setoid" ],
+    "Coq.Logic.ClassicalDescription": [ "Coq.Logic.Classical", "Coq.Logic.Description", "Coq.Logic.ChoiceFacts" ],
+    "Coq.Logic.Classical": [ "Coq.Logic.Classical_Prop", "Coq.Logic.Classical_Pred_Type" ],
+    "Coq.Logic.Eqdep": [ "Coq.Logic.EqdepFacts" ],
+    "Coq.Logic.ProofIrrelevance": [ "Coq.Logic.ProofIrrelevanceFacts" ],
+    "Coq.Logic.JMeq": [ "Coq.Logic.Eqdep" ],
+    "Coq.Logic.Diaconescu": [ "Coq.Logic.ClassicalFacts", "Coq.Logic.ChoiceFacts" ],
+    "Coq.Logic.WKL": [
+      "Coq.Logic.WeakFan",
+      "Coq.Lists.List",
+      "Coq.omega.Omega",
+      "Coq.Arith.Compare_dec",
+      "Coq.Arith.Le",
+      "Coq.Arith.Lt"
+    ],
+    "Coq.Logic.WeakFan": [ "Coq.Lists.List" ],
+    "Coq.Logic.ChoiceFacts": [
+      "Coq.Classes.RelationClasses",
+      "Coq.Init.Logic",
+      "Coq.Arith.Wf_nat",
+      "Coq.Logic.Decidable",
+      "Coq.Setoids.Setoid",
+      "Coq.Arith.Arith",
+      "Coq.Logic.ClassicalFacts",
+      "Coq.Logic.PropExtensionalityFacts"
+    ],
+    "Coq.Logic.Classical_Pred_Type": [ "Coq.Logic.Classical_Prop" ],
+    "Coq.Logic.Classical_Prop": [ "Coq.Logic.ClassicalFacts", "Coq.Logic.EqdepFacts" ],
+    "Coq.Logic.ClassicalChoice": [
+      "Coq.Logic.ClassicalUniqueChoice",
+      "Coq.Logic.RelationalChoice",
+      "Coq.Logic.ChoiceFacts"
+    ],
+    "Coq.Logic.SetoidChoice": [
+      "Coq.Logic.ClassicalChoice",
+      "Coq.Logic.ExtensionalFunctionRepresentative",
+      "Coq.Logic.ChoiceFacts",
+      "Coq.Logic.ClassicalFacts",
+      "Coq.Classes.RelationClasses"
+    ],
+    "Coq.Logic.FinFun": [
+      "Coq.Lists.List",
+      "Coq.Arith.Compare_dec",
+      "Coq.Arith.EqNat",
+      "Coq.Logic.Decidable",
+      "Coq.Lists.ListDec",
+      "Coq.Vectors.Fin"
+    ],
+    "Coq.Logic.IndefiniteDescription": [ "Coq.Logic.ChoiceFacts" ],
+    "Coq.Logic.ConstructiveEpsilon": [ "Coq.Arith.Arith" ],
+    "Coq.Program.Wf": [
+      "Coq.Init.Wf",
+      "Coq.Program.Utils",
+      "Coq.Logic.ProofIrrelevance",
+      "Coq.Logic.FunctionalExtensionality",
+      "Coq.extraction.Extraction"
+    ],
+    "Coq.Program.Combinators": [ "Coq.Program.Basics", "Coq.Logic.FunctionalExtensionality" ],
+    "Coq.Program.Subset": [
+      "Coq.Program.Utils",
+      "Coq.Program.Equality",
+      "Coq.Logic.ProofIrrelevance"
+    ],
+    "Coq.Program.Utils": [ "Coq.Program.Tactics", "Coq.Bool.Sumbool" ],
+    "Coq.Program.Equality": [ "Coq.Logic.JMeq", "Coq.Program.Tactics", "Coq.Logic.Eqdep" ],
+    "Coq.Program.Syntax": [ "Coq.Lists.List", "Coq.Bool.Bvector" ],
+    "Coq.Program.Program": [
+      "Coq.Program.Utils",
+      "Coq.Program.Wf",
+      "Coq.Program.Equality",
+      "Coq.Program.Subset",
+      "Coq.Program.Basics",
+      "Coq.Program.Combinators",
+      "Coq.Program.Syntax"
+    ],
+    "Coq.Classes.Morphisms_Relations": [
+      "Coq.Relations.Relation_Definitions",
+      "Coq.Classes.Morphisms",
+      "Coq.Program.Program"
+    ],
+    "Coq.Classes.CMorphisms": [
+      "Coq.Program.Basics",
+      "Coq.Program.Tactics",
+      "Coq.Classes.CRelationClasses",
+      "Coq.Relations.Relation_Definitions"
+    ],
+    "Coq.Classes.CRelationClasses": [ "Coq.Classes.Init", "Coq.Program.Basics", "Coq.Program.Tactics" ],
+    "Coq.Classes.SetoidDec": [
+      "Coq.Classes.SetoidClass",
+      "Coq.Logic.Decidable",
+      "Coq.Program.Program",
+      "Coq.Arith.Arith",
+      "Coq.Bool.Bool"
+    ],
+    "Coq.Classes.DecidableClass": [ "Coq.Bool.Bool", "Coq.Arith.Arith", "Coq.ZArith.ZArith" ],
+    "Coq.Classes.SetoidClass": [
+      "Coq.Program.Program",
+      "Coq.Relations.Relation_Definitions",
+      "Coq.Classes.RelationClasses",
+      "Coq.Classes.Morphisms"
+    ],
+    "Coq.Classes.EquivDec": [
+      "Coq.Classes.Equivalence",
+      "Coq.Logic.Decidable",
+      "Coq.Bool.Bool",
+      "Coq.Arith.Peano_dec",
+      "Coq.Program.Program",
+      "Coq.Lists.List"
+    ],
+    "Coq.Classes.CEquivalence": [
+      "Coq.Program.Basics",
+      "Coq.Program.Tactics",
+      "Coq.Classes.Init",
+      "Coq.Relations.Relation_Definitions",
+      "Coq.Classes.CRelationClasses",
+      "Coq.Classes.CMorphisms"
+    ],
+    "Coq.Classes.Morphisms": [
+      "Coq.Program.Basics",
+      "Coq.Program.Tactics",
+      "Coq.Relations.Relation_Definitions",
+      "Coq.Classes.RelationClasses"
+    ],
+    "Coq.Classes.SetoidTactics": [
+      "Coq.Classes.CRelationClasses",
+      "Coq.Classes.CMorphisms",
+      "Coq.Classes.Morphisms",
+      "Coq.Classes.Morphisms_Prop",
+      "Coq.Classes.RelationClasses",
+      "Coq.Relations.Relation_Definitions",
+      "Coq.Classes.Equivalence",
+      "Coq.Program.Basics",
+      "Coq.Program.Tactics"
+    ],
+    "Coq.Classes.Morphisms_Prop": [ "Coq.Classes.Morphisms", "Coq.Program.Basics", "Coq.Program.Tactics" ],
+    "Coq.Classes.Equivalence": [
+      "Coq.Program.Basics",
+      "Coq.Program.Tactics",
+      "Coq.Classes.Init",
+      "Coq.Relations.Relation_Definitions",
+      "Coq.Classes.RelationClasses",
+      "Coq.Classes.Morphisms"
+    ],
+    "Coq.Classes.Init": [ "Coq.Program.Basics" ],
+    "Coq.Classes.RelationPairs": [
+      "Coq.Lists.SetoidList",
+      "Coq.Relations.Relations",
+      "Coq.Classes.Morphisms"
+    ],
+    "Coq.Classes.RelationClasses": [
+      "Coq.Classes.Init",
+      "Coq.Program.Basics",
+      "Coq.Program.Tactics",
+      "Coq.Relations.Relation_Definitions"
+    ],
+    "Coq.Structures.DecidableTypeEx": [
+      "Coq.Structures.DecidableType",
+      "Coq.Structures.OrderedType",
+      "Coq.Structures.OrderedTypeEx"
+    ],
+    "Coq.Structures.OrdersEx": [
+      "Coq.Structures.Orders",
+      "Coq.Arith.PeanoNat",
+      "Coq.PArith.POrderedType",
+      "Coq.NArith.BinNat",
+      "Coq.ZArith.BinInt",
+      "Coq.Classes.RelationPairs",
+      "Coq.Structures.EqualitiesFacts"
+    ],
+    "Coq.Structures.GenericMinMax": [
+      "Coq.Structures.Orders",
+      "Coq.Structures.OrdersTac",
+      "Coq.Structures.OrdersFacts",
+      "Coq.Setoids.Setoid",
+      "Coq.Classes.Morphisms",
+      "Coq.Program.Basics"
+    ],
+    "Coq.Structures.OrdersAlt": [ "Coq.Structures.OrderedType", "Coq.Structures.Orders" ],
+    "Coq.Structures.Equalities": [
+      "Coq.Classes.RelationClasses",
+      "Coq.Bool.Bool",
+      "Coq.Classes.Morphisms",
+      "Coq.Setoids.Setoid"
+    ],
+    "Coq.Structures.Orders": [
+      "Coq.Relations.Relations",
+      "Coq.Classes.Morphisms",
+      "Coq.Setoids.Setoid",
+      "Coq.Structures.Equalities"
+    ],
+    "Coq.Structures.EqualitiesFacts": [
+      "Coq.Structures.Equalities",
+      "Coq.Bool.Bool",
+      "Coq.Lists.SetoidList",
+      "Coq.Classes.RelationPairs"
+    ],
+    "Coq.Structures.OrderedTypeAlt": [ "Coq.Structures.OrderedType" ],
+    "Coq.Structures.OrderedType": [
+      "Coq.Lists.SetoidList",
+      "Coq.Classes.Morphisms",
+      "Coq.Structures.OrdersTac"
+    ],
+    "Coq.Structures.OrdersFacts": [
+      "Coq.Bool.Bool",
+      "Coq.Program.Basics",
+      "Coq.Structures.OrdersTac",
+      "Coq.Structures.Orders"
+    ],
+    "Coq.Structures.OrdersLists": [
+      "Coq.Classes.RelationPairs",
+      "Coq.Lists.SetoidList",
+      "Coq.Structures.Orders",
+      "Coq.Structures.EqualitiesFacts"
+    ],
+    "Coq.Structures.OrderedTypeEx": [
+      "Coq.Structures.OrderedType",
+      "Coq.ZArith.ZArith",
+      "Coq.omega.Omega",
+      "Coq.NArith.NArith",
+      "Coq.NArith.Ndec",
+      "Coq.Arith.Compare_dec"
+    ],
+    "Coq.Structures.OrdersTac": [
+      "Coq.Setoids.Setoid",
+      "Coq.Classes.Morphisms",
+      "Coq.Program.Basics",
+      "Coq.Structures.Equalities",
+      "Coq.Structures.Orders"
+    ],
+    "Coq.Structures.DecidableType": [ "Coq.Lists.SetoidList", "Coq.Structures.Equalities" ],
+    "Coq.Relations.Relation_Operators": [ "Coq.Relations.Relation_Definitions" ],
+    "Coq.Relations.Relations": [
+      "Coq.Relations.Relation_Definitions",
+      "Coq.Relations.Relation_Operators",
+      "Coq.Relations.Operators_Properties"
+    ],
+    "Coq.Relations.Operators_Properties": [ "Coq.Relations.Relation_Definitions", "Coq.Relations.Relation_Operators" ],
+    "Coq.Setoids.Setoid": [ "Coq.Classes.SetoidTactics" ],
+    "Coq.FSets.FSetDecide": [
+      "Coq.Logic.Decidable",
+      "Coq.Setoids.Setoid",
+      "Coq.Structures.DecidableTypeEx",
+      "Coq.FSets.FSetFacts",
+      "Coq.FSets.FSetInterface"
+    ],
+    "Coq.FSets.FMaps": [
+      "Coq.Structures.OrderedType",
+      "Coq.Structures.OrderedTypeEx",
+      "Coq.Structures.OrderedTypeAlt",
+      "Coq.Structures.DecidableType",
+      "Coq.Structures.DecidableTypeEx",
+      "Coq.FSets.FMapInterface",
+      "Coq.FSets.FMapPositive",
+      "Coq.FSets.FMapFacts",
+      "Coq.FSets.FMapWeakList",
+      "Coq.FSets.FMapList"
+    ],
+    "Coq.FSets.FMapFacts": [
+      "Coq.Bool.Bool",
+      "Coq.Structures.DecidableType",
+      "Coq.Structures.DecidableTypeEx",
+      "Coq.Structures.OrderedType",
+      "Coq.Classes.Morphisms",
+      "Coq.FSets.FMapInterface"
+    ],
+    "Coq.FSets.FSetList": [
+      "Coq.FSets.FSetInterface",
+      "Coq.FSets.FSetCompat",
+      "Coq.MSets.MSetList",
+      "Coq.Structures.Orders",
+      "Coq.Structures.OrdersAlt"
+    ],
+    "Coq.FSets.FSetFacts": [ "Coq.Structures.DecidableTypeEx", "Coq.FSets.FSetInterface" ],
+    "Coq.FSets.FMapFullAVL": [
+      "Coq.funind.FunInd",
+      "Coq.funind.Recdef",
+      "Coq.FSets.FMapInterface",
+      "Coq.FSets.FMapList",
+      "Coq.ZArith.ZArith",
+      "Coq.ZArith.Int",
+      "Coq.FSets.FMapAVL",
+      "Coq.micromega.Lia"
+    ],
+    "Coq.FSets.FSetProperties": [
+      "Coq.FSets.FSetInterface",
+      "Coq.Structures.DecidableTypeEx",
+      "Coq.FSets.FSetFacts",
+      "Coq.FSets.FSetDecide"
+    ],
+    "Coq.FSets.FSetInterface": [
+      "Coq.Bool.Bool",
+      "Coq.Structures.OrderedType",
+      "Coq.Structures.DecidableType"
+    ],
+    "Coq.FSets.FSetWeakList": [
+      "Coq.FSets.FSetInterface",
+      "Coq.Structures.Equalities",
+      "Coq.FSets.FSetCompat",
+      "Coq.MSets.MSetWeakList"
+    ],
+    "Coq.FSets.FMapList": [ "Coq.funind.FunInd", "Coq.FSets.FMapInterface" ],
+    "Coq.FSets.FSetPositive": [
+      "Coq.Bool.Bool",
+      "Coq.PArith.BinPos",
+      "Coq.Structures.OrderedType",
+      "Coq.Structures.OrderedTypeEx",
+      "Coq.FSets.FSetInterface"
+    ],
+    "Coq.FSets.FSetToFiniteSet": [
+      "Coq.Sets.Ensembles",
+      "Coq.Sets.Finite_sets",
+      "Coq.FSets.FSetInterface",
+      "Coq.FSets.FSetProperties",
+      "Coq.Structures.OrderedTypeEx",
+      "Coq.Structures.DecidableTypeEx"
+    ],
+    "Coq.FSets.FMapInterface": [
+      "Coq.Bool.Bool",
+      "Coq.Structures.DecidableType",
+      "Coq.Structures.OrderedType"
+    ],
+    "Coq.FSets.FMapWeakList": [ "Coq.funind.FunInd", "Coq.FSets.FMapInterface" ],
+    "Coq.FSets.FSetCompat": [
+      "Coq.FSets.FSetInterface",
+      "Coq.FSets.FSetFacts",
+      "Coq.MSets.MSetInterface",
+      "Coq.MSets.MSetFacts"
+    ],
+    "Coq.FSets.FMapPositive": [
+      "Coq.Bool.Bool",
+      "Coq.Structures.OrderedType",
+      "Coq.ZArith.ZArith",
+      "Coq.Structures.OrderedTypeEx",
+      "Coq.FSets.FMapInterface"
+    ],
+    "Coq.FSets.FSetEqProperties": [
+      "Coq.FSets.FSetProperties",
+      "Coq.Bool.Zerob",
+      "Coq.Bool.Sumbool",
+      "Coq.omega.Omega",
+      "Coq.Structures.DecidableTypeEx"
+    ],
+    "Coq.FSets.FSets": [
+      "Coq.Structures.OrderedType",
+      "Coq.Structures.OrderedTypeEx",
+      "Coq.Structures.OrderedTypeAlt",
+      "Coq.Structures.DecidableType",
+      "Coq.Structures.DecidableTypeEx",
+      "Coq.FSets.FSetInterface",
+      "Coq.FSets.FSetBridge",
+      "Coq.FSets.FSetFacts",
+      "Coq.FSets.FSetDecide",
+      "Coq.FSets.FSetProperties",
+      "Coq.FSets.FSetEqProperties",
+      "Coq.FSets.FSetWeakList",
+      "Coq.FSets.FSetList",
+      "Coq.FSets.FSetPositive",
+      "Coq.FSets.FSetAVL"
+    ],
+    "Coq.FSets.FMapAVL": [
+      "Coq.funind.FunInd",
+      "Coq.FSets.FMapInterface",
+      "Coq.FSets.FMapList",
+      "Coq.ZArith.ZArith",
+      "Coq.ZArith.Int"
+    ],
+    "Coq.FSets.FSetBridge": [ "Coq.FSets.FSetInterface" ],
+    "Coq.FSets.FSetAVL": [
+      "Coq.FSets.FSetInterface",
+      "Coq.ZArith.ZArith",
+      "Coq.ZArith.Int",
+      "Coq.FSets.FSetCompat",
+      "Coq.MSets.MSetAVL",
+      "Coq.Structures.Orders",
+      "Coq.Structures.OrdersAlt"
+    ],
+    "Coq.MSets.MSets": [
+      "Coq.Structures.Orders",
+      "Coq.Structures.OrdersEx",
+      "Coq.Structures.OrdersAlt",
+      "Coq.Structures.Equalities",
+      "Coq.MSets.MSetInterface",
+      "Coq.MSets.MSetFacts",
+      "Coq.MSets.MSetDecide",
+      "Coq.MSets.MSetProperties",
+      "Coq.MSets.MSetEqProperties",
+      "Coq.MSets.MSetWeakList",
+      "Coq.MSets.MSetList",
+      "Coq.MSets.MSetPositive",
+      "Coq.MSets.MSetAVL"
+    ],
+    "Coq.MSets.MSetEqProperties": [
+      "Coq.MSets.MSetProperties",
+      "Coq.Bool.Zerob",
+      "Coq.Bool.Sumbool",
+      "Coq.omega.Omega",
+      "Coq.Structures.DecidableTypeEx"
+    ],
+    "Coq.MSets.MSetPositive": [
+      "Coq.Bool.Bool",
+      "Coq.PArith.BinPos",
+      "Coq.Structures.Orders",
+      "Coq.Structures.OrdersEx",
+      "Coq.MSets.MSetInterface"
+    ],
+    "Coq.MSets.MSetWeakList": [ "Coq.MSets.MSetInterface" ],
+    "Coq.MSets.MSetList": [
+      "Coq.MSets.MSetInterface",
+      "Coq.Structures.OrdersFacts",
+      "Coq.Structures.OrdersLists",
+      "Coq.Logic.Eqdep_dec"
+    ],
+    "Coq.MSets.MSetInterface": [
+      "Coq.Bool.Bool",
+      "Coq.Lists.SetoidList",
+      "Coq.Classes.RelationClasses",
+      "Coq.Classes.Morphisms",
+      "Coq.Classes.RelationPairs",
+      "Coq.Structures.Equalities",
+      "Coq.Structures.Orders",
+      "Coq.Structures.OrdersFacts"
+    ],
+    "Coq.MSets.MSetToFiniteSet": [
+      "Coq.Sets.Ensembles",
+      "Coq.Sets.Finite_sets",
+      "Coq.MSets.MSetInterface",
+      "Coq.MSets.MSetProperties",
+      "Coq.Structures.OrdersEx"
+    ],
+    "Coq.MSets.MSetRBT": [
+      "Coq.MSets.MSetGenTree",
+      "Coq.Bool.Bool",
+      "Coq.Lists.List",
+      "Coq.PArith.BinPos",
+      "Coq.PArith.Pnat",
+      "Coq.Setoids.Setoid",
+      "Coq.Lists.SetoidList",
+      "Coq.Arith.PeanoNat"
+    ],
+    "Coq.MSets.MSetGenTree": [
+      "Coq.funind.FunInd",
+      "Coq.Structures.Orders",
+      "Coq.Structures.OrdersFacts",
+      "Coq.MSets.MSetInterface",
+      "Coq.Arith.PeanoNat"
+    ],
+    "Coq.MSets.MSetDecide": [
+      "Coq.Logic.Decidable",
+      "Coq.Setoids.Setoid",
+      "Coq.Structures.DecidableTypeEx",
+      "Coq.MSets.MSetFacts",
+      "Coq.MSets.MSetInterface"
+    ],
+    "Coq.MSets.MSetProperties": [
+      "Coq.MSets.MSetInterface",
+      "Coq.Structures.DecidableTypeEx",
+      "Coq.Structures.OrdersLists",
+      "Coq.MSets.MSetFacts",
+      "Coq.MSets.MSetDecide"
+    ],
+    "Coq.MSets.MSetAVL": [
+      "Coq.funind.FunInd",
+      "Coq.MSets.MSetInterface",
+      "Coq.MSets.MSetGenTree",
+      "Coq.ZArith.BinInt",
+      "Coq.ZArith.Int"
+    ],
+    "Coq.MSets.MSetFacts": [ "Coq.Structures.DecidableTypeEx", "Coq.MSets.MSetInterface" ],
+    "Coq.Wellfounded.Well_Ordering": [ "Coq.Logic.Eqdep" ],
+    "Coq.Wellfounded.Lexicographic_Exponentiation": [
+      "Coq.Lists.List",
+      "Coq.Relations.Relation_Operators",
+      "Coq.Relations.Operators_Properties",
+      "Coq.Wellfounded.Transitive_Closure"
+    ],
+    "Coq.Wellfounded.Transitive_Closure": [ "Coq.Relations.Relation_Definitions", "Coq.Relations.Relation_Operators" ],
+    "Coq.Wellfounded.Disjoint_Union": [ "Coq.Relations.Relation_Operators" ],
+    "Coq.Wellfounded.Wellfounded": [
+      "Coq.Wellfounded.Disjoint_Union",
+      "Coq.Wellfounded.Inclusion",
+      "Coq.Wellfounded.Inverse_Image",
+      "Coq.Wellfounded.Lexicographic_Exponentiation",
+      "Coq.Wellfounded.Lexicographic_Product",
+      "Coq.Wellfounded.Transitive_Closure",
+      "Coq.Wellfounded.Union",
+      "Coq.Wellfounded.Well_Ordering"
+    ],
+    "Coq.Wellfounded.Union": [
+      "Coq.Relations.Relation_Operators",
+      "Coq.Relations.Relation_Definitions",
+      "Coq.Wellfounded.Transitive_Closure"
+    ],
+    "Coq.Wellfounded.Lexicographic_Product": [
+      "Coq.Logic.Eqdep",
+      "Coq.Relations.Relation_Operators",
+      "Coq.Wellfounded.Transitive_Closure"
+    ],
+    "Coq.Wellfounded.Inclusion": [ "Coq.Relations.Relation_Definitions" ],
+    "Coq.Strings.Ascii": [
+      "Coq.Bool.Bool",
+      "Coq.PArith.BinPos",
+      "Coq.NArith.BinNat",
+      "Coq.Arith.PeanoNat",
+      "Coq.NArith.Nnat"
+    ],
+    "Coq.Strings.BinaryString": [ "Coq.Strings.Ascii", "Coq.Strings.String", "Coq.Numbers.BinNums" ],
+    "Coq.Strings.HexString": [ "Coq.Strings.Ascii", "Coq.Strings.String", "Coq.Numbers.BinNums" ],
+    "Coq.Strings.OctalString": [ "Coq.Strings.Ascii", "Coq.Strings.String", "Coq.Numbers.BinNums" ],
+    "Coq.Strings.String": [ "Coq.Arith.Arith", "Coq.Strings.Ascii", "Coq.Bool.Bool" ],
+    "Coq.Numbers.NumPrelude": [
+      "Coq.Setoids.Setoid",
+      "Coq.Classes.Morphisms",
+      "Coq.Classes.Morphisms_Prop"
+    ],
+    "Coq.Numbers.NaryFunctions": [ "Coq.Lists.List" ],
+    "Coq.Numbers.DecimalPos": [
+      "Coq.Init.Decimal",
+      "Coq.Numbers.DecimalFacts",
+      "Coq.PArith.PArith",
+      "Coq.NArith.NArith"
+    ],
+    "Coq.Numbers.DecimalZ": [
+      "Coq.Init.Decimal",
+      "Coq.Numbers.DecimalFacts",
+      "Coq.Numbers.DecimalPos",
+      "Coq.Numbers.DecimalN",
+      "Coq.ZArith.ZArith"
+    ],
+    "Coq.Numbers.DecimalFacts": [ "Coq.Init.Decimal" ],
+    "Coq.Numbers.DecimalNat": [ "Coq.Init.Decimal", "Coq.Numbers.DecimalFacts", "Coq.Arith.Arith" ],
+    "Coq.Numbers.DecimalN": [
+      "Coq.Init.Decimal",
+      "Coq.Numbers.DecimalFacts",
+      "Coq.Numbers.DecimalPos",
+      "Coq.PArith.PArith",
+      "Coq.NArith.NArith"
+    ],
+    "Coq.Numbers.DecimalString": [ "Coq.Init.Decimal", "Coq.Strings.Ascii", "Coq.Strings.String" ],
+    "Coq.Numbers.AltBinNotations": [ "Coq.Numbers.BinNums" ],
+    "Coq.Numbers.NatInt.NZSqrt": [ "Coq.Numbers.NatInt.NZAxioms", "Coq.Numbers.NatInt.NZMulOrder" ],
+    "Coq.Numbers.NatInt.NZDomain": [
+      "Coq.Numbers.NumPrelude",
+      "Coq.Numbers.NatInt.NZAxioms",
+      "Coq.Numbers.NatInt.NZBase",
+      "Coq.Numbers.NatInt.NZOrder",
+      "Coq.Numbers.NatInt.NZAddOrder",
+      "Coq.Arith.Plus",
+      "Coq.Arith.Minus"
+    ],
+    "Coq.Numbers.NatInt.NZParity": [
+      "Coq.Bool.Bool",
+      "Coq.Numbers.NatInt.NZAxioms",
+      "Coq.Numbers.NatInt.NZMulOrder"
+    ],
+    "Coq.Numbers.NatInt.NZMulOrder": [ "Coq.Numbers.NatInt.NZAxioms", "Coq.Numbers.NatInt.NZAddOrder" ],
+    "Coq.Numbers.NatInt.NZBits": [
+      "Coq.Bool.Bool",
+      "Coq.Numbers.NatInt.NZAxioms",
+      "Coq.Numbers.NatInt.NZMulOrder",
+      "Coq.Numbers.NatInt.NZParity",
+      "Coq.Numbers.NatInt.NZPow",
+      "Coq.Numbers.NatInt.NZDiv",
+      "Coq.Numbers.NatInt.NZLog"
+    ],
+    "Coq.Numbers.NatInt.NZMul": [
+      "Coq.Numbers.NatInt.NZAxioms",
+      "Coq.Numbers.NatInt.NZBase",
+      "Coq.Numbers.NatInt.NZAdd"
+    ],
+    "Coq.Numbers.NatInt.NZOrder": [
+      "Coq.Numbers.NatInt.NZAxioms",
+      "Coq.Numbers.NatInt.NZBase",
+      "Coq.Logic.Decidable",
+      "Coq.Structures.OrdersTac"
+    ],
+    "Coq.Numbers.NatInt.NZAxioms": [
+      "Coq.Structures.Equalities",
+      "Coq.Structures.Orders",
+      "Coq.Numbers.NumPrelude",
+      "Coq.Structures.GenericMinMax"
+    ],
+    "Coq.Numbers.NatInt.NZGcd": [ "Coq.Numbers.NatInt.NZAxioms", "Coq.Numbers.NatInt.NZMulOrder" ],
+    "Coq.Numbers.NatInt.NZAddOrder": [
+      "Coq.Numbers.NatInt.NZAxioms",
+      "Coq.Numbers.NatInt.NZBase",
+      "Coq.Numbers.NatInt.NZMul",
+      "Coq.Numbers.NatInt.NZOrder"
+    ],
+    "Coq.Numbers.NatInt.NZBase": [ "Coq.Numbers.NatInt.NZAxioms" ],
+    "Coq.Numbers.NatInt.NZPow": [ "Coq.Numbers.NatInt.NZAxioms", "Coq.Numbers.NatInt.NZMulOrder" ],
+    "Coq.Numbers.NatInt.NZAdd": [ "Coq.Numbers.NatInt.NZAxioms", "Coq.Numbers.NatInt.NZBase" ],
+    "Coq.Numbers.NatInt.NZProperties": [ "Coq.Numbers.NatInt.NZAxioms", "Coq.Numbers.NatInt.NZMulOrder" ],
+    "Coq.Numbers.NatInt.NZDiv": [ "Coq.Numbers.NatInt.NZAxioms", "Coq.Numbers.NatInt.NZMulOrder" ],
+    "Coq.Numbers.NatInt.NZLog": [
+      "Coq.Numbers.NatInt.NZAxioms",
+      "Coq.Numbers.NatInt.NZMulOrder",
+      "Coq.Numbers.NatInt.NZPow"
+    ],
+    "Coq.Numbers.Natural.Abstract.NPow": [
+      "Coq.Bool.Bool",
+      "Coq.Numbers.Natural.Abstract.NAxioms",
+      "Coq.Numbers.Natural.Abstract.NSub",
+      "Coq.Numbers.Natural.Abstract.NParity",
+      "Coq.Numbers.NatInt.NZPow"
+    ],
+    "Coq.Numbers.Natural.Abstract.NOrder": [ "Coq.Numbers.Natural.Abstract.NAdd" ],
+    "Coq.Numbers.Natural.Abstract.NDiv": [
+      "Coq.Numbers.Natural.Abstract.NAxioms",
+      "Coq.Numbers.Natural.Abstract.NSub",
+      "Coq.Numbers.NatInt.NZDiv"
+    ],
+    "Coq.Numbers.Natural.Abstract.NLog": [
+      "Coq.Numbers.Natural.Abstract.NAxioms",
+      "Coq.Numbers.Natural.Abstract.NSub",
+      "Coq.Numbers.Natural.Abstract.NPow",
+      "Coq.Numbers.Natural.Abstract.NParity",
+      "Coq.Numbers.NatInt.NZLog"
+    ],
+    "Coq.Numbers.Natural.Abstract.NAdd": [ "Coq.Numbers.Natural.Abstract.NBase" ],
+    "Coq.Numbers.Natural.Abstract.NGcd": [
+      "Coq.Numbers.Natural.Abstract.NAxioms",
+      "Coq.Numbers.Natural.Abstract.NSub",
+      "Coq.Numbers.NatInt.NZGcd"
+    ],
+    "Coq.Numbers.Natural.Abstract.NProperties": [
+      "Coq.Numbers.Natural.Abstract.NAxioms",
+      "Coq.Numbers.Natural.Abstract.NMaxMin",
+      "Coq.Numbers.Natural.Abstract.NParity",
+      "Coq.Numbers.Natural.Abstract.NPow",
+      "Coq.Numbers.Natural.Abstract.NSqrt",
+      "Coq.Numbers.Natural.Abstract.NLog",
+      "Coq.Numbers.Natural.Abstract.NDiv",
+      "Coq.Numbers.Natural.Abstract.NGcd",
+      "Coq.Numbers.Natural.Abstract.NLcm",
+      "Coq.Numbers.Natural.Abstract.NBits"
+    ],
+    "Coq.Numbers.Natural.Abstract.NMulOrder": [ "Coq.Numbers.Natural.Abstract.NAddOrder" ],
+    "Coq.Numbers.Natural.Abstract.NSqrt": [
+      "Coq.Numbers.Natural.Abstract.NAxioms",
+      "Coq.Numbers.Natural.Abstract.NSub",
+      "Coq.Numbers.NatInt.NZSqrt"
+    ],
+    "Coq.Numbers.Natural.Abstract.NParity": [
+      "Coq.Bool.Bool",
+      "Coq.Numbers.Natural.Abstract.NSub",
+      "Coq.Numbers.NatInt.NZParity"
+    ],
+    "Coq.Numbers.Natural.Abstract.NBits": [
+      "Coq.Bool.Bool",
+      "Coq.Numbers.Natural.Abstract.NAxioms",
+      "Coq.Numbers.Natural.Abstract.NSub",
+      "Coq.Numbers.Natural.Abstract.NPow",
+      "Coq.Numbers.Natural.Abstract.NDiv",
+      "Coq.Numbers.Natural.Abstract.NParity",
+      "Coq.Numbers.Natural.Abstract.NLog"
+    ],
+    "Coq.Numbers.Natural.Abstract.NLcm": [
+      "Coq.Numbers.Natural.Abstract.NAxioms",
+      "Coq.Numbers.Natural.Abstract.NSub",
+      "Coq.Numbers.Natural.Abstract.NDiv",
+      "Coq.Numbers.Natural.Abstract.NGcd"
+    ],
+    "Coq.Numbers.Natural.Abstract.NBase": [
+      "Coq.Logic.Decidable",
+      "Coq.Numbers.Natural.Abstract.NAxioms",
+      "Coq.Numbers.NatInt.NZProperties"
+    ],
+    "Coq.Numbers.Natural.Abstract.NDefOps": [
+      "Coq.Bool.Bool",
+      "Coq.Classes.RelationPairs",
+      "Coq.Numbers.Natural.Abstract.NStrongRec"
+    ],
+    "Coq.Numbers.Natural.Abstract.NSub": [ "Coq.Numbers.Natural.Abstract.NMulOrder" ],
+    "Coq.Numbers.Natural.Abstract.NMaxMin": [
+      "Coq.Numbers.Natural.Abstract.NAxioms",
+      "Coq.Numbers.Natural.Abstract.NSub",
+      "Coq.Structures.GenericMinMax"
+    ],
+    "Coq.Numbers.Natural.Abstract.NAddOrder": [ "Coq.Numbers.Natural.Abstract.NOrder" ],
+    "Coq.Numbers.Natural.Abstract.NAxioms": [
+      "Coq.Bool.Bool",
+      "Coq.Numbers.NatInt.NZAxioms",
+      "Coq.Numbers.NatInt.NZParity",
+      "Coq.Numbers.NatInt.NZPow",
+      "Coq.Numbers.NatInt.NZSqrt",
+      "Coq.Numbers.NatInt.NZLog",
+      "Coq.Numbers.NatInt.NZDiv",
+      "Coq.Numbers.NatInt.NZGcd",
+      "Coq.Numbers.NatInt.NZBits"
+    ],
+    "Coq.Numbers.Natural.Abstract.NIso": [ "Coq.Numbers.Natural.Abstract.NBase" ],
+    "Coq.Numbers.Natural.Abstract.NStrongRec": [ "Coq.Numbers.Natural.Abstract.NSub" ],
+    "Coq.Numbers.Natural.Peano.NPeano": [
+      "Coq.Arith.PeanoNat",
+      "Coq.Arith.Even",
+      "Coq.Numbers.Natural.Abstract.NAxioms"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZProperties": [
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.Integer.Abstract.ZMaxMin",
+      "Coq.Numbers.Integer.Abstract.ZSgnAbs",
+      "Coq.Numbers.Integer.Abstract.ZParity",
+      "Coq.Numbers.Integer.Abstract.ZPow",
+      "Coq.Numbers.Integer.Abstract.ZDivTrunc",
+      "Coq.Numbers.Integer.Abstract.ZDivFloor",
+      "Coq.Numbers.Integer.Abstract.ZGcd",
+      "Coq.Numbers.Integer.Abstract.ZLcm",
+      "Coq.Numbers.NatInt.NZLog",
+      "Coq.Numbers.NatInt.NZSqrt",
+      "Coq.Numbers.Integer.Abstract.ZBits"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZLcm": [
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.Integer.Abstract.ZMulOrder",
+      "Coq.Numbers.Integer.Abstract.ZSgnAbs",
+      "Coq.Numbers.Integer.Abstract.ZGcd",
+      "Coq.Numbers.Integer.Abstract.ZDivTrunc",
+      "Coq.Numbers.Integer.Abstract.ZDivFloor"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZMul": [ "Coq.Numbers.Integer.Abstract.ZAdd" ],
+    "Coq.Numbers.Integer.Abstract.ZMulOrder": [ "Coq.Numbers.Integer.Abstract.ZAddOrder" ],
+    "Coq.Numbers.Integer.Abstract.ZParity": [
+      "Coq.Bool.Bool",
+      "Coq.Numbers.Integer.Abstract.ZMulOrder",
+      "Coq.Numbers.NatInt.NZParity"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZBits": [
+      "Coq.Bool.Bool",
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.Integer.Abstract.ZMulOrder",
+      "Coq.Numbers.Integer.Abstract.ZPow",
+      "Coq.Numbers.Integer.Abstract.ZDivFloor",
+      "Coq.Numbers.Integer.Abstract.ZSgnAbs",
+      "Coq.Numbers.Integer.Abstract.ZParity",
+      "Coq.Numbers.NatInt.NZLog"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZAdd": [ "Coq.Numbers.Integer.Abstract.ZBase" ],
+    "Coq.Numbers.Integer.Abstract.ZMaxMin": [
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.Integer.Abstract.ZMulOrder",
+      "Coq.Structures.GenericMinMax"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZBase": [
+      "Coq.Logic.Decidable",
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.NatInt.NZProperties"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZDivFloor": [
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.Integer.Abstract.ZMulOrder",
+      "Coq.Numbers.Integer.Abstract.ZSgnAbs",
+      "Coq.Numbers.NatInt.NZDiv"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZAddOrder": [ "Coq.Numbers.Integer.Abstract.ZLt" ],
+    "Coq.Numbers.Integer.Abstract.ZPow": [
+      "Coq.Bool.Bool",
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.Integer.Abstract.ZMulOrder",
+      "Coq.Numbers.Integer.Abstract.ZParity",
+      "Coq.Numbers.Integer.Abstract.ZSgnAbs",
+      "Coq.Numbers.NatInt.NZPow"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZLt": [ "Coq.Numbers.Integer.Abstract.ZMul" ],
+    "Coq.Numbers.Integer.Abstract.ZDivTrunc": [
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.Integer.Abstract.ZMulOrder",
+      "Coq.Numbers.Integer.Abstract.ZSgnAbs",
+      "Coq.Numbers.NatInt.NZDiv"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZAxioms": [
+      "Coq.Numbers.NatInt.NZAxioms",
+      "Coq.Bool.Bool",
+      "Coq.Numbers.NatInt.NZParity",
+      "Coq.Numbers.NatInt.NZPow",
+      "Coq.Numbers.NatInt.NZSqrt",
+      "Coq.Numbers.NatInt.NZLog",
+      "Coq.Numbers.NatInt.NZGcd",
+      "Coq.Numbers.NatInt.NZDiv",
+      "Coq.Numbers.NatInt.NZBits"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZDivEucl": [
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.Integer.Abstract.ZMulOrder",
+      "Coq.Numbers.Integer.Abstract.ZSgnAbs",
+      "Coq.Numbers.NatInt.NZDiv"
+    ],
+    "Coq.Numbers.Integer.Abstract.ZSgnAbs": [ "Coq.Numbers.Integer.Abstract.ZMulOrder" ],
+    "Coq.Numbers.Integer.Abstract.ZGcd": [
+      "Coq.Numbers.Integer.Abstract.ZAxioms",
+      "Coq.Numbers.Integer.Abstract.ZMulOrder",
+      "Coq.Numbers.Integer.Abstract.ZSgnAbs",
+      "Coq.Numbers.NatInt.NZGcd"
+    ],
+    "Coq.Arith.Wf_nat": [
+      "Coq.Arith.PeanoNat",
+      "Coq.Arith.Lt",
+      "Coq.Arith.Le",
+      "Coq.Arith.Compare_dec",
+      "Coq.Logic.Decidable"
+    ],
+    "Coq.Arith.Minus": [ "Coq.Arith.PeanoNat", "Coq.Arith.Lt", "Coq.Arith.Le" ],
+    "Coq.Arith.Le": [ "Coq.Arith.PeanoNat" ],
+    "Coq.Arith.Plus": [ "Coq.Arith.PeanoNat", "Coq.Arith.Le", "Coq.Arith.Lt" ],
+    "Coq.Arith.Gt": [ "Coq.Arith.PeanoNat", "Coq.Arith.Le", "Coq.Arith.Lt", "Coq.Arith.Plus" ],
+    "Coq.Arith.Lt": [ "Coq.Arith.PeanoNat", "Coq.Arith.Le" ],
+    "Coq.Arith.PeanoNat": [
+      "Coq.Numbers.Natural.Abstract.NAxioms",
+      "Coq.Numbers.Natural.Abstract.NProperties",
+      "Coq.Structures.OrdersFacts"
+    ],
+    "Coq.Arith.Compare_dec": [
+      "Coq.Arith.Le",
+      "Coq.Arith.Lt",
+      "Coq.Arith.Gt",
+      "Coq.Logic.Decidable",
+      "Coq.Arith.PeanoNat"
+    ]
+  }
 }

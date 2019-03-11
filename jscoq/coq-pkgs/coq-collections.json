@@ -1,6 +1,6 @@
 {
   "desc": "coq-collections",
-  "deps": [ "coq-base", "coq-numbers" ],
+  "deps": [ "coq-base" ],
   "pkgs": [
     {
       "pkg_id": [ "Coq", "Lists" ],
@@ -68,5 +68,190 @@
       ],
       "cma_files": []
     }
-  ]
+  ],
+  "archive": "coq-collections.coq-pkg",
+  "modDeps": {
+    "Coq.Lists.ListSet": [ "Coq.Lists.List" ],
+    "Coq.Lists.SetoidPermutation": [ "Coq.Sorting.Permutation", "Coq.Lists.SetoidList" ],
+    "Coq.Lists.List": [
+      "Coq.Setoids.Setoid",
+      "Coq.Arith.PeanoNat",
+      "Coq.Arith.Le",
+      "Coq.Arith.Gt",
+      "Coq.Arith.Minus",
+      "Coq.Bool.Bool",
+      "Coq.Arith.Lt"
+    ],
+    "Coq.Lists.SetoidList": [
+      "Coq.Lists.List",
+      "Coq.Sorting.Sorted",
+      "Coq.Setoids.Setoid",
+      "Coq.Program.Basics",
+      "Coq.Classes.Morphisms"
+    ],
+    "Coq.Lists.ListTactics": [ "Coq.PArith.BinPos", "Coq.Lists.List" ],
+    "Coq.Lists.StreamMemo": [ "Coq.Logic.Eqdep_dec", "Coq.Lists.Streams" ],
+    "Coq.Lists.ListDec": [ "Coq.Lists.List", "Coq.Logic.Decidable" ],
+    "Coq.Vectors.Vector": [
+      "Coq.Vectors.Fin",
+      "Coq.Vectors.VectorDef",
+      "Coq.Vectors.VectorSpec",
+      "Coq.Vectors.VectorEq"
+    ],
+    "Coq.Vectors.VectorEq": [ "Coq.Vectors.VectorDef", "Coq.Vectors.VectorSpec" ],
+    "Coq.Vectors.VectorDef": [ "Coq.Arith.Arith_base", "Coq.Vectors.Fin" ],
+    "Coq.Vectors.VectorSpec": [ "Coq.Vectors.Fin", "Coq.Vectors.VectorDef" ],
+    "Coq.Vectors.Fin": [ "Coq.Arith.Arith_base" ],
+    "Coq.Sets.Uniset": [ "Coq.Bool.Bool", "Coq.Sets.Permut" ],
+    "Coq.Sets.Infinite_sets": [
+      "Coq.Sets.Finite_sets",
+      "Coq.Sets.Constructive_sets",
+      "Coq.Logic.Classical",
+      "Coq.Sets.Classical_sets",
+      "Coq.Sets.Powerset",
+      "Coq.Sets.Powerset_facts",
+      "Coq.Sets.Powerset_Classical_facts",
+      "Coq.Arith.Gt",
+      "Coq.Arith.Lt",
+      "Coq.Arith.Le",
+      "Coq.Sets.Finite_sets_facts",
+      "Coq.Sets.Image"
+    ],
+    "Coq.Sets.Classical_sets": [
+      "Coq.Sets.Ensembles",
+      "Coq.Sets.Constructive_sets",
+      "Coq.Logic.Classical"
+    ],
+    "Coq.Sets.Powerset_Classical_facts": [
+      "Coq.Sets.Ensembles",
+      "Coq.Sets.Constructive_sets",
+      "Coq.Sets.Relations_1",
+      "Coq.Sets.Relations_1_facts",
+      "Coq.Sets.Partial_Order",
+      "Coq.Sets.Cpo",
+      "Coq.Sets.Powerset",
+      "Coq.Sets.Powerset_facts",
+      "Coq.Logic.Classical",
+      "Coq.Sets.Classical_sets"
+    ],
+    "Coq.Sets.Integers": [
+      "Coq.Sets.Finite_sets",
+      "Coq.Sets.Constructive_sets",
+      "Coq.Logic.Classical",
+      "Coq.Sets.Classical_sets",
+      "Coq.Sets.Powerset",
+      "Coq.Sets.Powerset_facts",
+      "Coq.Sets.Powerset_Classical_facts",
+      "Coq.Arith.Gt",
+      "Coq.Arith.Lt",
+      "Coq.Arith.Le",
+      "Coq.Sets.Finite_sets_facts",
+      "Coq.Sets.Image",
+      "Coq.Sets.Infinite_sets",
+      "Coq.Arith.Compare_dec",
+      "Coq.Sets.Relations_1",
+      "Coq.Sets.Partial_Order",
+      "Coq.Sets.Cpo"
+    ],
+    "Coq.Sets.Partial_Order": [ "Coq.Sets.Ensembles", "Coq.Sets.Relations_1" ],
+    "Coq.Sets.Relations_2_facts": [
+      "Coq.Sets.Relations_1",
+      "Coq.Sets.Relations_1_facts",
+      "Coq.Sets.Relations_2"
+    ],
+    "Coq.Sets.Relations_3_facts": [
+      "Coq.Sets.Relations_1",
+      "Coq.Sets.Relations_1_facts",
+      "Coq.Sets.Relations_2",
+      "Coq.Sets.Relations_2_facts",
+      "Coq.Sets.Relations_3"
+    ],
+    "Coq.Sets.Powerset_facts": [
+      "Coq.Sets.Ensembles",
+      "Coq.Sets.Constructive_sets",
+      "Coq.Sets.Relations_1",
+      "Coq.Sets.Relations_1_facts",
+      "Coq.Sets.Partial_Order",
+      "Coq.Sets.Cpo",
+      "Coq.Sets.Powerset"
+    ],
+    "Coq.Sets.Finite_sets": [ "Coq.Sets.Ensembles", "Coq.Sets.Constructive_sets" ],
+    "Coq.Sets.Cpo": [ "Coq.Sets.Ensembles", "Coq.Sets.Relations_1", "Coq.Sets.Partial_Order" ],
+    "Coq.Sets.Relations_3": [ "Coq.Sets.Relations_1", "Coq.Sets.Relations_2" ],
+    "Coq.Sets.Relations_2": [ "Coq.Sets.Relations_1" ],
+    "Coq.Sets.Finite_sets_facts": [
+      "Coq.Sets.Finite_sets",
+      "Coq.Sets.Constructive_sets",
+      "Coq.Logic.Classical",
+      "Coq.Sets.Classical_sets",
+      "Coq.Sets.Powerset",
+      "Coq.Sets.Powerset_facts",
+      "Coq.Sets.Powerset_Classical_facts",
+      "Coq.Arith.Gt",
+      "Coq.Arith.Lt"
+    ],
+    "Coq.Sets.Powerset": [
+      "Coq.Sets.Ensembles",
+      "Coq.Sets.Relations_1",
+      "Coq.Sets.Relations_1_facts",
+      "Coq.Sets.Partial_Order",
+      "Coq.Sets.Cpo"
+    ],
+    "Coq.Sets.Constructive_sets": [ "Coq.Sets.Ensembles" ],
+    "Coq.Sets.Relations_1_facts": [ "Coq.Sets.Relations_1" ],
+    "Coq.Sets.Multiset": [ "Coq.Sets.Permut", "Coq.Setoids.Setoid", "Coq.Arith.Plus" ],
+    "Coq.Sets.Image": [
+      "Coq.Sets.Finite_sets",
+      "Coq.Sets.Constructive_sets",
+      "Coq.Logic.Classical",
+      "Coq.Sets.Classical_sets",
+      "Coq.Sets.Powerset",
+      "Coq.Sets.Powerset_facts",
+      "Coq.Sets.Powerset_Classical_facts",
+      "Coq.Arith.Gt",
+      "Coq.Arith.Lt",
+      "Coq.Arith.Le",
+      "Coq.Sets.Finite_sets_facts"
+    ],
+    "Coq.Sorting.PermutEq": [
+      "Coq.Relations.Relations",
+      "Coq.Setoids.Setoid",
+      "Coq.Lists.SetoidList",
+      "Coq.Lists.List",
+      "Coq.Sets.Multiset",
+      "Coq.Sorting.PermutSetoid",
+      "Coq.Sorting.Permutation",
+      "Coq.omega.Omega"
+    ],
+    "Coq.Sorting.Heap": [
+      "Coq.Lists.List",
+      "Coq.Sets.Multiset",
+      "Coq.Sorting.PermutSetoid",
+      "Coq.Relations.Relations",
+      "Coq.Sorting.Sorting"
+    ],
+    "Coq.Sorting.Sorting": [ "Coq.Sorting.Sorted", "Coq.Sorting.Mergesort" ],
+    "Coq.Sorting.PermutSetoid": [
+      "Coq.omega.Omega",
+      "Coq.Relations.Relations",
+      "Coq.Sets.Multiset",
+      "Coq.Lists.SetoidList",
+      "Coq.Sorting.Permutation"
+    ],
+    "Coq.Sorting.Permutation": [
+      "Coq.Lists.List",
+      "Coq.Setoids.Setoid",
+      "Coq.Arith.Compare_dec",
+      "Coq.Classes.Morphisms",
+      "Coq.Logic.FinFun"
+    ],
+    "Coq.Sorting.Sorted": [ "Coq.Lists.List", "Coq.Relations.Relations", "Coq.Sets.Relations_1" ],
+    "Coq.Sorting.Mergesort": [
+      "Coq.Lists.List",
+      "Coq.Setoids.Setoid",
+      "Coq.Sorting.Permutation",
+      "Coq.Sorting.Sorted",
+      "Coq.Structures.Orders"
+    ]
+  }
 }

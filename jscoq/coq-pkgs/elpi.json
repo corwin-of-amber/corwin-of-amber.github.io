@@ -7,5 +7,6 @@
     { "pkg_id": [ "elpi", "test" ], "vo_files": [], "cma_files": [] },
     { "pkg_id": [ "elpi", "tutorial" ], "vo_files": [], "cma_files": [] },
     { "pkg_id": [ "elpi", "derive" ], "vo_files": [], "cma_files": [] }
-  ]
+  ],
+  "archive": "elpi.coq-pkg"
 }
