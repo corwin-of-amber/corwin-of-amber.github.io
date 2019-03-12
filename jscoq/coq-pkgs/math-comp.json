@@ -87,7 +87,6 @@
         [ "primitive_action.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
         [ "maximal.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
         [ "commutator.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
-        [ "burnside_app.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
         [ "sylow.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
         [ "jordanholder.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
         [ "extraspecial.vo", "d41d8cd98f00b204e9800998ecf8427e" ],
