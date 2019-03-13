@@ -31,11 +31,13 @@
     position: relative;
     top: 2px;  /* yuck */
 }
-
 #header .caption b {
     color: #444;
 }
-
+#header .caption i.first-time {
+    font-style: initial;
+    opacity: 0.33;
+}
 
 #lab-menu {
     position: absolute;

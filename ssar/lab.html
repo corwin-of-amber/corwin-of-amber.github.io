@@ -4,7 +4,13 @@
     <meta http-equiv="content-type" content="text/html;charset=utf-8" />
     <meta name="description" content="An Online IDE for the Coq Theorem Prover" />
 
-    <link rel="stylesheet" type="text/css" href="./coq.css">
+    <!-- 
+    <script src="../node_modules/nwjs-kremlin/reload.js"></script>
+    <script type="text/javascript">
+    Reload.ignore('coq-external', 'coq-pkgs', 'ui-external');
+    Reload.ignore(/[.](tmp|ml|cmo|cmi|byte)$/)
+    </script> <!-- -->
+
     <link rel="stylesheet" type="text/css" href="./lab.css">
 
     <title>jsCoq - The Coq Theorem Prover Online IDE</title>
@@ -42,7 +48,6 @@
   <script src="../jscoq/ui-js/jscoq-loader.js" type="text/javascript"></script>
   <script type="text/javascript">
 
-
     var jscoq_ids  = ['workspace'];
     var jscoq_opts = {
         prelude:   true,
@@ -53,13 +58,17 @@
         editor: { mode: { 'company-coq': true }, keyMap: 'default' }
     };
 
+    var ssar = "./repo";
+
     var lab_resources = {
-      'lab3/vecn.v':      './repo/lab3/src/vecn.v',
-      'lab4/gcd.v':       './repo/lab4/src/gcd.v',
-      'lab5/mccarthy.v':  './repo/lab5/src/mccarthy.v',
-      'lab6/euclid.v':    './repo/lab6/src/euclid.v',
-      'lab6/hoare.v':     './repo/lab6/src/hoare.v'
+      'lab3/vecn.v':      ssar + '/lab3/src/vecn.v',
+      'lab4/gcd.v':       ssar + '/lab4/src/gcd.v',
+      'lab5/mccarthy.v':  ssar + '/lab5/src/mccarthy.v',
+      'lab6/euclid.v':    ssar + '/lab6/src/euclid.v',
+      'lab6/hoare.v':     ssar + '/lab6/src/hoare.v'
     };
+
+    var reset = false;
 
     function markLocallyModified() {
       var lfs = CmCoqProvider.getLocalFileStore();
@@ -184,12 +193,14 @@
           markLocallyModified();
           if (last_filename)
             openLocal(last_filename, /*default_filename=*/'untitled.v');
+          else
+            $('#header .caption').html('<i class="first-time">← open the lab menu</i>');
           setupMenu();
         });
 
     window.addEventListener('beforeunload', () => {
       var sp = coq.provider.snippets[0];
-      document.cookie = "last_filename=" + (sp.filename || 'untitled.v');
+      document.cookie = "last_filename=" + (reset ? '' : sp.filename || '');
     });
   </script>
 </body>
