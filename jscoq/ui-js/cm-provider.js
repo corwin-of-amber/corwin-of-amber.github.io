@@ -34,7 +34,8 @@ class CmCoqProvider {
               keyMap            : "emacs",
               extraKeys: {
                   'Tab': 'indentMore',
-                  'Shift-Tab': 'indentLess'
+                  'Shift-Tab': 'indentLess',
+                  'Ctrl-Space': 'autocomplete'
               }
             };
 
@@ -64,6 +65,9 @@ class CmCoqProvider {
 
         this.editor.on('beforeChange', (cm, evt) => this.onCMChange(cm, evt) );
 
+        this.editor.on('cursorActivity', (cm) => 
+            cm.operation(() => this._adjustWidgetsInSelection()));
+
         // Handle mouse hover events
         var editor_element = $(this.editor.getWrapperElement());
         editor_element.on('mousemove', ev => this.onCMMouseMove(ev));
@@ -83,7 +87,11 @@ class CmCoqProvider {
     }
 
     focus() {
-        this.editor.focus();
+        var dialog_input = this.editor.getWrapperElement()
+            .querySelector('.CodeMirror-dialog');
+        // If a dialog is open, editor.focus() will close it,
+        // leading to poor UX.
+        if (!dialog_input) this.editor.focus();
     }
 
     // If prev == null then get the first.
@@ -181,6 +189,17 @@ class CmCoqProvider {
         }
     }
 
+    /**
+     * Removes all sentence marks
+     */
+    retract() {
+        for (let mark of this.editor.getAllMarks()) {
+            if (mark.stm) {
+                this.mark(mark.stm, 'clear');
+            }
+        }
+    }
+
     markWithClass(stm, className) {
         var doc = this.editor.getDoc();
 
@@ -226,31 +245,37 @@ class CmCoqProvider {
         }
     }
 
+    /**
+     * Final hack: adjust class of widget when active selection is manipulated
+     * by mark-selection addon.
+     */
+    _adjustWidgetsInSelection() {
+        var editor = this.editor,
+            sel_className = 'CodeMirror-selectedtext';
+
+        // Clear any previously marked widgets
+        $(editor.getWrapperElement()).find(`.CodeMirror-widget.${sel_className}`)
+            .removeClass(sel_className);
+
+        // Locate selection mark and adjust widgets contain therein
+        var selmark = editor.findMarksAt(editor.getCursor())
+            .filter(m => m.className == sel_className)[0], selmark_at;
+
+        if (selmark && (selmark_at = selmark.find()))
+            this._markWidgetsAsWell(selmark_at.from, selmark_at.to, selmark);
+    }
+
     getCursor() {
         return this.editor.getCursor();
     }
 
     cursorLess(c1, c2) {
-
         return (c1.line < c2.line ||
                 (c1.line === c2.line && c1.ch < c2.ch));
     }
 
-    cursorToStart(stm) {
-
-        var doc = this.editor.getDoc();
-        var csr = doc.getCursor();
-
-        if (this.cursorLess(csr, stm.end))
-            doc.setCursor(stm.start);
-    }
-
     cursorToEnd(stm) {
-        var doc = this.editor.getDoc();
-        var csr = doc.getCursor();
-
-        if (this.cursorLess(csr, stm.end))
-            doc.setCursor(stm.end);
+        this.editor.setCursor(stm.end);
     }
 
     /**
@@ -308,10 +333,14 @@ class CmCoqProvider {
         return undefined;
     }
 
-    // If a mark is present, request contextual information.
+    /**
+     * Highlights the sentence mark under the mouse cursor and emits
+     * onMouseEnter/onMouseLeave when the active mark changes.
+     * @param {MouseEvent} evt event object
+     */
     onCMMouseMove(evt) {
 
-        var mark = this._markFromElement(evt.target);
+        var mark = evt.buttons ? null : this._markFromElement(evt.target);
 
         if (mark && this.hover.indexOf(mark) > -1) return;
 
@@ -336,7 +365,10 @@ class CmCoqProvider {
         }
     }
 
-    // Notification of leaving the mark.
+    /**
+     * De-highlights and emits onMouseLeave when leaving the active mark.
+     * @param {MouseEvent} evt event object
+     */
     onCMMouseLeave(evt) {
         if (this.hover.length > 0) {
             for (let m of this.hover)
@@ -379,8 +411,12 @@ class CmCoqProvider {
         return next;
     }
 
+    // ================
+    // Persistence Part
+    // ================
+
     load(text, filename, dirty=false) {
-        if (this.autosave && this.dirty) saveLocal();
+        if (this.autosave && this.dirty) this.saveLocal();
 
         this.editor.setValue(text);
         this.filename = filename;
@@ -410,7 +446,9 @@ class CmCoqProvider {
         }
     }
 
-    saveLocal() {
+    saveLocal(filename) {
+        if (filename) this.filename = filename;
+
         if (this.filename) {
             var file_store = this.getLocalFileStore();
             file_store.setItem(this.filename, this.editor.getValue());
@@ -437,6 +475,68 @@ class CmCoqProvider {
         return CmCoqProvider.file_store;
     }
 
+    // Save/load UI
+
+    openLocalDialog() {
+        var span = this._makeFileDialog("Open file: "),
+            a = $('<a>').addClass('dialog-link').text('From disk...')
+                        .mousedown(ev => ev.preventDefault())
+                        .click(() => this.openFileDialog());
+
+        span.append(a);
+
+        this.editor.openDialog(span[0], sel => this.openLocal(sel));
+    }
+
+    openFileDialog() {
+        var input = $('<input>').attr('type', 'file');
+        input.change(() => {
+            if (input[0].files[0]) this.openFile(input[0].files[0]);
+        });
+        input.click();
+    }
+
+    saveLocalDialog() {
+        var span = this._makeFileDialog("Save file: ");
+
+        this.editor.openDialog(span[0], sel => this.saveLocal(sel), 
+                               {value: this.filename});
+    }
+
+    _makeFileDialog(text) {
+        var list_id = 'cm-provider-local-files',
+            input = $('<input>').attr('list', list_id),
+            list = $('<datalist>').attr('id', list_id);
+        
+        this.getLocalFileStore().keys().then((keys) => {
+            for (let key of keys) {
+                list.append($('<option>').val(key));
+            }
+        });
+
+        this._setupTabCompletion(input, list);
+
+        return $('<span>').text(text).append(input, list);
+    }
+
+    _setupTabCompletion(input, list) {
+        input.keydown(ev => { if (ev.key === 'Tab') {
+            this._complete(input, list);
+            ev.preventDefault(); ev.stopPropagation(); } 
+        });
+    }
+
+    _complete(input, list) {
+        var value = input.val();
+
+        if (value) {
+            var match = list.children('option').get()
+                            .find(o => o.value.includes(value));
+            if (match) {
+                input.val(match.value);
+            }
+        }
+    }
 }
 
 // Local Variables:
