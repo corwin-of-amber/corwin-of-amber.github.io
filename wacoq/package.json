@@ -1,0 +1,13 @@
+{
+  "name": "corwin-wacoq",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "dependencies": {
+    "coq-wasm": "file:../../../workspace/Coq.WA/wacoq-bin.tar.gz",
+    "jscoq": "file:../../../ext/jscoq/_build/dist/jscoq-0.11.0-npm.tar.gz"
+  },
+  "devDependencies": {},
+  "author": "",
+  "license": "ISC"
+}
