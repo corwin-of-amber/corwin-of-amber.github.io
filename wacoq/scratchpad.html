@@ -38,7 +38,8 @@
       document.getElementById('ide-wrapper')
               .setAttribute('data-filename', last_filename);
 
-    JsCoq.start(jscoq_opts);
+    var coq;
+    (async () => { coq = await JsCoq.start(jscoq_opts); })();
 
     window.addEventListener('beforeunload', () => {
       var sp = coq.provider.snippets[0];
