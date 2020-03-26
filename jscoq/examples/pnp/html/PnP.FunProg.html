@@ -1,0 +1,1861 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="../js/clean.css" rel="stylesheet" type="text/css" />
+<title>PnP.FunProg</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library PnP.FunProg</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+ 
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+Our journey to the land of mechanized reasoning and interactive
+theorem proving starts from observing the capabilities of Coq as a
+programming language.
+
+<div class="paragraph"> </div>
+
+Coq's programming component is often described as a <i>functional</i>
+programming language, since its programs are always pure (i.e., not
+producing any sort of side effects), possibly higher-order functions,
+which means that they might take other functions as parameters and
+return functions as results. Similarly to other functional programming
+languages, such as Haskell, OCaml or Scala, Coq makes heavy use of
+algebraic datatypes, represented by a number of possibly recursive
+constructors.  Very soon, we will see how <i>programming</i> with inductive
+algebraic datatypes incorporates <i>reasoning</i> about them, but for now
+let us take a short tour of Coq's syntax and define a number of simple
+programs.
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab12"></a><h1 class="section">Enumeration datatypes</h1>
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+Let us create an empty  file---a standard extension for
+Coq files, recognized, in particular, by Proof General, and define our
+first Coq datatype. The simplest datatype one can imagine is <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a></span>, a
+type inhabited by exactly one element.  In Coq, one
+can define such a type in the following manner:<tt>Ctrl-C Ctrl-Enter</tt>
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <a name="unit"><span class="id" title="inductive">unit</span></a> : <span class="id" title="keyword">Set</span> := <a name="tt"><span class="id" title="constructor">tt</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+The definition above postulates that the type <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a></span> has <i>exactly</i> one
+constructor, namely, <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#tt"><span class="id" title="constructor">tt</span></a></span>. In the type theory jargon, which we will
+adopt, it is said that the expression <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#tt"><span class="id" title="constructor">tt</span></a></span> <i>inhabits</i> the <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a></span>
+type. Naturally, it is the only inhabitant of the set, corresponding
+to the <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a></span> type. We can now check the <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#tt"><span class="id" title="constructor">tt</span></a></span>'s affiliation via the
+<span class="inlinecode"><span class="id" title="keyword">Check</span></span> command:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <a class="idref" href="PnP.FunProg.html#tt"><span class="id" title="constructor">tt</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<br/>
+<span class="inlinecode"><a class="idref" href="PnP.FunProg.html#tt"><span class="id" title="constructor">tt</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+Moreover, we can make sure that the <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a></span> datatype itself defines a set:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <a class="idref" href="PnP.FunProg.html#unit"><span class="id" title="inductive">unit</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<br/>
+<span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="keyword">Set</span>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+In fact, since Coq makes the analogy between sets and types so
+transparent, it is not difficult to define a type describing the
+<i>empty</i> set:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <a name="empty"><span class="id" title="inductive">empty</span></a> : <span class="id" title="keyword">Set</span> := .<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+That is, the empty set is precisely described by the type, values of
+which we simply <i>cannot construct</i>, as the type itself does <i>not</i>
+provide any constructors!  In fact, this observation about inhabitance
+of types/sets and the definition of an empty type will come in quite
+handy very soon when we will be talking about the truth and falsehood
+in the setting of the Curry-Howard correspondence in
+Chapter. Unfortunately, at this moment there is not
+so much we can do with such simple types as <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a></span> or <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#empty"><span class="id" title="inductive">empty</span></a></span>, so we
+proceed by defining some more interesting datatypes.
+
+<div class="paragraph"> </div>
+
+The type <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span> is familiar to every programmer. In Coq, it is
+unsurprisingly defined by providing exactly two constructors: <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a></span>
+and <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a></span>. Since <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span> is already provided by the standard Coq
+library, we do not need to define it ourselves. Instead, we include
+the following modules into our file using the <span class="inlinecode"><span class="id" title="keyword">From</span></span> <span class="inlinecode">...</span> <span class="inlinecode"><span class="id" title="keyword">Require</span></span>
+<span class="inlinecode"><span class="id" title="keyword">Import</span></span>   command:<span class="inlinecode"><span class="id" title="var">mathcomp</span></span>
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span><br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">ssreflect</span> <span class="id" title="library">ssrbool</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Now, we can inspect the definition of the <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span> type by simply
+printing it:  
+
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>.<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><span class="id" title="keyword">Inductive</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a> : <span class="id" title="keyword">Set</span> :=  <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a> | <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+Let us now try to define some functions that operate with the bool
+datatype ignoring for a moment the fact that most of them, if not all,
+are already defined in the standard Coq/Ssreflect library.  Our first
+function will simply negate the boolean value and return its opposite:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="negate"><span class="id" title="definition">negate</span></a> <span class="id" title="var">b</span> := <br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="PnP.FunProg.html#b"><span class="id" title="variable">b</span></a> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;| <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a>  ⇒ <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a><br/>
+&nbsp;&nbsp;| <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a> ⇒ <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+The syntax of Coq as programming language is very similar to Standard
+ML. The keyword <span class="inlinecode"><span class="id" title="keyword">Definition</span></span>  is used to define
+non-recursive values, including functions. In the example above, we
+defined a function with one argument <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.b"><span class="id" title="variable">b</span></a></span>, which is being scrutinized
+against two possible value patterns (<span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a></span> and <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a></span>),
+respectively, and the corresponding results are returned. Notice that,
+thanks to its very powerful type inference algorithm, Coq didn't
+require us to annotate neither the argument <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.b"><span class="id" title="variable">b</span></a></span> with its type, nor the
+function itself with its result type: these types were soundly
+inferred, which might be confirmed by checking the overall type of
+<span class="inlinecode"><a class="idref" href="PnP.FunProg.html#negate"><span class="id" title="definition">negate</span></a></span>, stating that it is a function from <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span> to <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span>:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <a class="idref" href="PnP.FunProg.html#negate"><span class="id" title="definition">negate</span></a>.<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><a class="idref" href="PnP.FunProg.html#negate"><span class="id" title="definition">negate</span></a></span> <span class="inlinecode">:</span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span> <span class="inlinecode">→</span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span>
+<span class="inlinecode"></span>
+
+<div class="paragraph"> </div>
+
+<a name="lab13"></a><h1 class="section">Simple recursive datatypes and programs</h1>
+
+
+<div class="paragraph"> </div>
+
+At this point we have seen only very simple forms of inductive types,
+such that all their inhabitants are explicitly enumerated (e.g.,
+<span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a></span> and <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span>). The next type used ubiquitously in the
+computations and mathematical reasoning are natural numbers, the first
+<i>truly</i> inductive datatype. Following the Peano axioms, the type <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span>
+of natural numbers is defined by induction, i.e., via the following
+two constructors: 
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="keyword">Inductive</span></span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="keyword">Set</span></span> <span class="inlinecode">:=</span>  <span class="inlinecode"><span class="id" title="var">O</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span> <span class="inlinecode">|</span> <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.S"><span class="id" title="axiom">S</span></a></span> <span class="inlinecode">:</span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span> <span class="inlinecode">→</span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span>
+
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+The definition of the type <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span> is <i>recursive</i>.  It postulates that
+<span class="inlinecode"><span class="id" title="var">O</span></span> is a natural number (hence, the first constructor), and, if <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span> is
+a natural number then <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.S"><span class="id" title="axiom">S</span></a></span> <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span> is a natural number as well (hence, the
+name <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.S"><span class="id" title="axiom">S</span></a></span>, which is a shortcut for <i>successor</i>). At this point, the
+reader can recall the notion of <i>mathematical induction</i>, usually
+introduced in school and postulating that if a statement <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> has to be
+proven to hold over <i>all</i> natural numbers, it should be proven to hold
+on zero <i>and</i> if it holds for <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span>, then it should hold for <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span> <span class="inlinecode">+</span>
+<span class="inlinecode">1</span>. The very same principle is put into the definition of the natural
+numbers themselves. In the future, we will see many other interesting
+data structures going far beyond natural numbers and each equipped
+with its own <i>induction principle</i>.  Moreover, quite soon we will see
+that in Coq recursive definitions/computations and inductive proofs
+are in fact two sides of the same coin.
+
+<div class="paragraph"> </div>
+
+For now, let us write some functions dealing with natural numbers.  In
+order to work conveniently with the elements of type <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span>, we will
+import yet another Ssreflect library:
+
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span><br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">ssrnat</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+Probably, the most basic function working on natural numbers is their
+addition. Even though such function is already implemented in the vast
+majority of the programming languages (including Coq), let us do it
+from scratch using the definition of <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span> from above. Since <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span> is
+a recursive type, the addition of two natural numbers <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span> and <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a></span>
+should be defined recursively as well. In Coq, recursive functions are
+defined via the keyword <span class="inlinecode"><span class="id" title="keyword">Fixpoint</span></span>. In the following definition of the
+<span class="inlinecode"><a class="idref" href="PnP.FunProg.html#my_plus"><span class="id" title="definition">my_plus</span></a></span> function, we will make use of Ssreflect's postfix notation
+<span class="inlinecode">.+1</span> (with no spaces between the characters) as an alternative to the
+standard <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span>'s recursive constructor <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.S"><span class="id" title="axiom">S</span></a></span>. Also, Coq provides a convenient notation <span class="inlinecode">0</span> for the
+<i>zero</i> constructor <span class="inlinecode"><span class="id" title="var">O</span></span>.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <a name="my_plus"><span class="id" title="definition">my_plus</span></a> <span class="id" title="var">n</span> <span class="id" title="var">m</span> := <br/>
+&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="PnP.FunProg.html#n"><span class="id" title="variable">n</span></a> <span class="id" title="keyword">with</span> <br/>
+&nbsp;| 0     ⇒ <a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a>   <br/>
+&nbsp;| <span class="id" title="var">n'</span><span class="id" title="notation">.+1</span> ⇒ <span class="id" title="keyword">let</span>: <span class="id" title="var">tmp</span> := <a class="idref" href="PnP.FunProg.html#my_plus"><span class="id" title="definition">my_plus</span></a> <span class="id" title="var">n'</span> <a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a> <span class="id" title="tactic">in</span> <span class="id" title="var">tmp</span><span class="id" title="notation">.+1</span><br/>
+&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+Here, we deliberately used less concise notation in order to
+demonstrate the syntax <span class="inlinecode"><span class="id" title="keyword">let</span>:</span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a></span> <span class="inlinecode">:=</span> <span class="inlinecode"><span class="id" title="var">e1</span></span> <span class="inlinecode"><span class="id" title="tactic">in</span></span> <span class="inlinecode"><span class="id" title="var">e2</span></span> construct, which,
+similarly to Haskell and OCaml, allows one to bind intermediate
+computations within expressions. The function <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#my_plus"><span class="id" title="definition">my_plus</span></a></span> is recursive on its <i>first</i>
+argument, which is being decreased in the body, so <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#n'"><span class="id" title="variable">n'</span></a></span> is a
+<i>predecessor</i> of <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span>, which is passed as an argument to the recursive
+call. We can now check the result of evaluation of <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#my_plus"><span class="id" title="definition">my_plus</span></a></span> via Coq's
+<span class="inlinecode"><span class="id" title="keyword">Eval</span></span> <span class="inlinecode"><span class="id" title="tactic">compute</span></span> <span class="inlinecode"><span class="id" title="tactic">in</span></span>  command:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Eval</span> <span class="id" title="tactic">compute</span> <span class="id" title="tactic">in</span> <a class="idref" href="PnP.FunProg.html#my_plus"><span class="id" title="definition">my_plus</span></a> 5 7.<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<span class="inlinecode"></span>  <span class="inlinecode">=</span> <span class="inlinecode">12</span> <span class="inlinecode">:</span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span> 
+
+<div class="paragraph"> </div>
+
+The same function could be written quite a bit shorter via Ssreflect's
+pattern-matching <span class="inlinecode"><span class="id" title="keyword">if</span>-<span class="id" title="keyword">is</span></span>-notation, which is a convenient alternative
+to pattern matching with only two alternatives:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <a name="my_plus'"><span class="id" title="definition">my_plus'</span></a> <span class="id" title="var">n</span> <span class="id" title="var">m</span> := <span class="id" title="keyword">if</span> <a class="idref" href="PnP.FunProg.html#n"><span class="id" title="variable">n</span></a> <span class="id" title="keyword">is</span> <span class="id" title="var">n'</span><span class="id" title="notation">.+1</span> <span class="id" title="keyword">then</span> <span class="id" title="notation">(</span><a class="idref" href="PnP.FunProg.html#my_plus'"><span class="id" title="definition">my_plus'</span></a> <span class="id" title="var">n'</span> <a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a><span class="id" title="notation">).+1</span> <span class="id" title="keyword">else</span> <a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+At this point, the reader might have an impression that the
+computational language of Coq is the same as of OCaml and Haskell, so
+all usual tricks from the functional programming might be directly
+applicable. Unfortunately, it is not so, and the main difference
+between Coq and other general-purpose programming languages stems from
+the way it treats recursion. For instance, let us try to define the
+following "buggy" addition function, which goes into an infinite
+recursion instead of producing the value, due to the fact that the
+recursion argument is not decreasing and remains to be <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span>:
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">my_plus_buggy</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> <a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a> := <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">if</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> <span class="id" title="keyword">is</span> <a class="idref" href="PnP.FunProg.html#n'"><span class="id" title="variable">n'</span></a>.+1 <span class="id" title="keyword">then</span> (<span class="id" title="var">my_plus_buggy</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> <a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a>).+1 <span class="id" title="keyword">else</span> <a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a>.
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+we immediately get the following error out of the Coq interpreter:
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><span class="id" title="var">Error</span>: <span class="id" title="var">Cannot</span> <span class="id" title="var">guess</span> <span class="id" title="var">decreasing</span> <span class="id" title="var">argument</span> <span class="id" title="keyword">of</span> <span class="id" title="keyword">fix</span>.
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+This is due to the fact that the recursion in <span class="inlinecode"><span class="id" title="var">my_plus_buggy</span></span> is not
+<i>primitive</i>: that is, there is a recursive call, whose argument is not
+"smaller" comparing to the initial function's arguments <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span> or <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a></span>,
+which makes this procedure to fall into a larger class of <i>generally
+recursive</i> programs. Unlike primitively-recursive programs,
+generally-recursive programs may not terminate or terminate only on a
+subset of their inputs, and checking termination statically in general
+is an undecidable problem (that is, such checking will not terminate
+by itself, which is known under the name of Turing's <i>halting
+problem</i>).
+
+<div class="paragraph"> </div>
+
+The check for primitive recursion, which implies termination, is
+performed by Coq <i>syntactically</i>, and the system makes sure that there
+is at least one argument of an inductively-defined datatype, which is
+being consistently decreased at each function
+call.<span class="inlinecode">{<span class="id" title="keyword">struct</span></span> <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a>}</span><span class="inlinecode"><a class="idref" href="PnP.FunProg.html#my_plus"><span class="id" title="definition">my_plus</span></a></span> This criteria is sufficient to ensure the termination
+of all functions in Coq. Of course, such termination check is a severe
+restriction to the computational power of Coq, which therefore is not
+Turing-complete as a programming language (as it supports only
+primitive recursion).
+
+<div class="paragraph"> </div>
+
+Although Coq is equipped with an amount of machinery to <i>reason</i> about
+potentially non-terminating programs and prove some useful facts about
+them (for example, Chapter 7 of the
+book provides a broad overview of methods to
+encode potentially non-terminating programs in Coq and reason about
+them), it usually requires some ingenuity to execute
+generally-recursive computations within Coq. Fortunately, even without
+the possibility to <i>execute</i> any possible program in the system, Coq
+provides a rich tool-set to <i>encode</i> such programs, so a number of
+statements could be proved about them (as we will see in
+), and the encoded programs themselves could be
+later <i>extracted</i> into a general-purpose language, such as Haskell or
+OCaml in order to be executed (see for detailed description of the
+extraction).
+
+<div class="paragraph"> </div>
+
+So, why is ensuring termination in Coq so important? The reason for
+this will be better understood once we introduce the way Coq works
+with logical statements and propositions. For now, it should be enough
+to accept the fact that in order to ensure the logical calculus
+underlying Coq sound, the results of all functions in it (even
+operating with infinite values, e.g., streams defined co-inductively)
+should be computable in a finite number of steps. A bit further we
+will see that the proofs of propositions in Coq are just ordinary
+values in its computational language, and the construction of the
+proofs naturally should terminate, hence computation of <i>any</i> value in
+Coq should terminate, since each value can be involved into a proof of
+some statement.
+
+<div class="paragraph"> </div>
+
+Postponing the discussion on the nature of propositions and proofs in
+Coq, we will continue our overview of programming principles in Coq.
+
+<div class="paragraph"> </div>
+
+With the example of the addition function, we have already seen how
+the recursive functions are defined. However, using the <span class="inlinecode"><span class="id" title="keyword">Fixpoint</span></span>
+command is not the only way to provide definitions to functions
+similar to <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#my_plus"><span class="id" title="definition">my_plus</span></a></span>. When defining the types <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a></span> or <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#empty"><span class="id" title="inductive">empty</span></a></span>, we
+could have noticed the following output produced by the interactive
+interpreter:
+<br/>
+<span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a> <span class="id" title="keyword">is</span> <span class="id" title="var">defined</span><br/>
+<span class="id" title="var">unit_rect</span> <span class="id" title="keyword">is</span> <span class="id" title="var">defined</span><br/>
+<span class="id" title="var">unit_ind</span> <span class="id" title="keyword">is</span> <span class="id" title="var">defined</span><br/>
+<span class="id" title="var">unit_rec</span> <span class="id" title="keyword">is</span> <span class="id" title="var">defined</span>
+<div class="paragraph"> </div>
+
+</span>These three lines indicate that along with the new datatype (<span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a></span> in
+this case) three additional entities have been generated by the
+system. These are the companion <i>induction</i> and <i>recursion</i>
+principles, which are named using the simple convention basing on the
+name of the datatype. For example, the <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span> datatype comes
+accompanied by <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rect"><span class="id" title="definition">nat_rect</span></a></span>, <span class="inlinecode"><span class="id" title="var">nat_ind</span></span> and <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rec"><span class="id" title="definition">nat_rec</span></a></span>, correspondingly.
+
+<div class="paragraph"> </div>
+
+Continuing playing with natural numbers and leaving the <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rect"><span class="id" title="definition">nat_rect</span></a></span> and
+<span class="inlinecode"><span class="id" title="var">nat_ind</span></span> aside for a moment, we focus on the recursion primitive
+<span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rec"><span class="id" title="definition">nat_rec</span></a></span>, which is a <i>higher-order</i> function with the following type:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rec"><span class="id" title="definition">nat_rec</span></a>.<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rec"><span class="id" title="definition">nat_rec</span></a> : <span class="id" title="keyword">∀</span> <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> → <span class="id" title="keyword">Set</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> 0 → (<span class="id" title="keyword">∀</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>, <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> → <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a>.+1) → <span class="id" title="keyword">∀</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>, <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+The type of <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rec"><span class="id" title="definition">nat_rec</span></a></span> requires a bit of explanation. It is
+polymorphic in the sense of Haskell and OCaml (i.e., it is
+parametrized over another type). More precisely, its first parameter,
+bound by the <span class="inlinecode"><span class="id" title="keyword">∀</span></span> quantifier is a function, which maps natural
+numbers to types (hence the type of this parameter is <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span> <span class="inlinecode">→</span>
+<span class="inlinecode"><span class="id" title="keyword">Set</span></span>). The second parameter is a result of type described by
+application of the function <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> to zero. The third parameter is a
+<i>family</i> of functions, indexed by a natural number <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span>. Each function
+from such a family takes an argument of type <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span> and returns a
+result of type <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a>.+1</span>. The default recursion
+principle for natural numbers is
+therefore a higher-order function (i.e., a combinator). If the three
+ discussed arguments are provided, the result of
+<span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rec"><span class="id" title="definition">nat_rec</span></a></span> will be a function, mapping a natural number <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span> to a value
+of type <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span>.
+
+<div class="paragraph"> </div>
+
+To see how <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rec"><span class="id" title="definition">nat_rec</span></a></span> is implemented, let us explore its generalized
+version, <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rect"><span class="id" title="definition">nat_rect</span></a></span>:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rect"><span class="id" title="definition">nat_rect</span></a>.<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rect"><span class="id" title="definition">nat_rect</span></a> = <br/>
+&nbsp;<span class="id" title="keyword">fun</span> (<a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> → <span class="id" title="keyword">Type</span>) (<a class="idref" href="PnP.Rewriting.html#Rewriting.f"><span class="id" title="definition">f</span></a> : <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> 0) (<span class="id" title="var">f0</span> : <span class="id" title="keyword">∀</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>, <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> → <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a>.+1) ⇒<br/>
+&nbsp;<span class="id" title="keyword">fix</span> <span class="id" title="var">F</span> (<a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>) : <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> :=<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> <span class="id" title="keyword">as</span> <span class="id" title="var">n0</span> <span class="id" title="keyword">return</span> (<a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <span class="id" title="var">n0</span>) <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;| 0 ⇒ <a class="idref" href="PnP.Rewriting.html#Rewriting.f"><span class="id" title="definition">f</span></a><br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="var">n0</span>.+1 ⇒ <span class="id" title="var">f0</span> <span class="id" title="var">n0</span> (<span class="id" title="var">F</span> <span class="id" title="var">n0</span>)<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="keyword">∀</span> <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> → <span class="id" title="keyword">Type</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> 0 → (<span class="id" title="keyword">∀</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>, <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> → <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a>.+1) → <span class="id" title="keyword">∀</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>, <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+Abstracting away from the details, we can see that <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rect"><span class="id" title="definition">nat_rect</span></a></span> is
+indeed a function with three parameters (the keyword <span class="inlinecode"><span class="id" title="keyword">fun</span></span> is similar
+to the lambda notation and is common in the family of ML-like
+languages).  The body of <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rect"><span class="id" title="definition">nat_rect</span></a></span> is implemented as a recursive
+function (defined via the keyword <span class="inlinecode"><span class="id" title="keyword">fix</span></span>) taking an argument <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span> of
+type <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span>. Internally, it proceeds similarly to our implementation of
+<span class="inlinecode"><a class="idref" href="PnP.FunProg.html#my_plus"><span class="id" title="definition">my_plus</span></a></span>: if the argument <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span> is zero, then the "default" value <span class="inlinecode"><a class="idref" href="PnP.Rewriting.html#Rewriting.f"><span class="id" title="definition">f</span></a></span>
+of type <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> <span class="inlinecode">0</span> is returned. Otherwise, the function proceeds
+recursively with a smaller argument <span class="inlinecode"><span class="id" title="var">n0</span></span> by applying the "step"
+function <span class="inlinecode"><span class="id" title="var">f0</span></span> to the <span class="inlinecode"><span class="id" title="var">n0</span></span> and the result of recursive call <span class="inlinecode"><span class="id" title="var">F</span></span> <span class="inlinecode"><span class="id" title="var">n0</span></span>.
+
+<div class="paragraph"> </div>
+
+Therefore, the summing function can be implemented via the <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span>'s
+recursion combinator as follows:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="my_plus''"><span class="id" title="definition">my_plus''</span></a> <span class="id" title="var">n</span> <span class="id" title="var">m</span> := <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rec"><span class="id" title="definition">nat_rec</span></a> (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>) <a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n'</span> <span class="id" title="var">m'</span> ⇒ <a class="idref" href="PnP.FunProg.html#m'"><span class="id" title="variable">m'</span></a><span class="id" title="notation">.+1</span>) <a class="idref" href="PnP.FunProg.html#n"><span class="id" title="variable">n</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Eval</span> <span class="id" title="tactic">compute</span> <span class="id" title="tactic">in</span> <a class="idref" href="PnP.FunProg.html#my_plus''"><span class="id" title="definition">my_plus''</span></a> 16 12.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<span class="inlinecode"></span>    <span class="inlinecode">=</span> <span class="inlinecode">28</span> <span class="inlinecode">:</span> <span class="inlinecode">(<span class="id" title="keyword">fun</span></span> <span class="inlinecode"><span class="id" title="var">_</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span> <span class="inlinecode">⇒</span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>)</span> <span class="inlinecode">16</span>
+
+<div class="paragraph"> </div>
+
+The result of invoking <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#my_plus''"><span class="id" title="definition">my_plus''</span></a></span> is expectable. Notice, however, that
+when defining it we didn't have to use the keyword <span class="inlinecode"><span class="id" title="keyword">Fixpoint</span></span> (or,
+equivalently, <span class="inlinecode"><span class="id" title="keyword">fix</span></span>), since all recursion has been "sealed" within the
+definition of the combinator <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rect"><span class="id" title="definition">nat_rect</span></a></span>.
+
+<div class="paragraph"> </div>
+
+<a name="lab14"></a><h2 class="section">Dependent function types and pattern matching</h2>
+
+
+<div class="paragraph"> </div>
+
+
+An important thing to notice is the fact that the type of <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> in the
+definition of <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rec"><span class="id" title="definition">nat_rec</span></a></span> is a function that maps <i>values</i> of type <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span>
+into arbitrary types. This gives us a possibility to define
+<i>dependently-typed</i> functions, whose return type depends on their
+input argument value. A simple example of such a function is below:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rec"><span class="id" title="definition">nat_rec</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="sum_no_zero"><span class="id" title="definition">sum_no_zero</span></a> <span class="id" title="var">n</span> := <br/>
+&nbsp;<span class="id" title="keyword">let</span>: <span class="id" title="var">P</span> := (<span class="id" title="keyword">fun</span> <span class="id" title="var">n</span> ⇒ <span class="id" title="keyword">if</span> <a class="idref" href="PnP.FunProg.html#n"><span class="id" title="variable">n</span></a> <span class="id" title="keyword">is</span> 0 <span class="id" title="keyword">then</span> <a class="idref" href="PnP.FunProg.html#unit"><span class="id" title="inductive">unit</span></a> <span class="id" title="keyword">else</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>) <span class="id" title="tactic">in</span><br/>
+&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rec"><span class="id" title="definition">nat_rec</span></a> <span class="id" title="var">P</span> <a class="idref" href="PnP.FunProg.html#tt"><span class="id" title="constructor">tt</span></a> (<span class="id" title="keyword">fun</span> <span class="id" title="var">n'</span> <span class="id" title="var">m</span> ⇒ <br/>
+&nbsp;<span class="id" title="keyword">match</span> <a class="idref" href="PnP.FunProg.html#n'"><span class="id" title="variable">n'</span></a> <span class="id" title="keyword">return</span> <span class="id" title="var">P</span> <a class="idref" href="PnP.FunProg.html#n'"><span class="id" title="variable">n'</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <span class="id" title="var">_</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;| 0 ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ 1<br/>
+&nbsp;| <span class="id" title="var">n''</span><span class="id" title="notation">.+1</span> ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">m</span> ⇒ <a class="idref" href="PnP.FunProg.html#my_plus"><span class="id" title="definition">my_plus</span></a> <a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a> (<a class="idref" href="PnP.FunProg.html#n'"><span class="id" title="variable">n'</span></a><span class="id" title="notation">.+1</span>) <br/>
+&nbsp;<span class="id" title="keyword">end</span> <a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a>) <a class="idref" href="PnP.FunProg.html#n"><span class="id" title="variable">n</span></a>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Eval</span> <span class="id" title="tactic">compute</span> <span class="id" title="tactic">in</span> <a class="idref" href="PnP.FunProg.html#sum_no_zero"><span class="id" title="definition">sum_no_zero</span></a> 0.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<span class="inlinecode"></span> 
+     <span class="inlinecode">=</span> <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#tt"><span class="id" title="constructor">tt</span></a></span>
+     <span class="inlinecode">:</span> <span class="inlinecode">(<span class="id" title="keyword">fun</span></span> <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span> <span class="inlinecode">:</span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span> <span class="inlinecode">⇒</span> <span class="inlinecode"><span class="id" title="keyword">match</span></span> <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span> <span class="inlinecode"><span class="id" title="keyword">with</span></span>
+                       <span class="inlinecode">|</span> <span class="inlinecode">0</span> <span class="inlinecode">⇒</span> <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a></span>
+                       <span class="inlinecode">|</span> <span class="inlinecode"><span class="id" title="var">_</span>.+1</span> <span class="inlinecode">⇒</span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span>
+                       <span class="inlinecode"><span class="id" title="keyword">end</span>)</span> <span class="inlinecode">0</span>
+<span class="inlinecode"></span>
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Eval</span> <span class="id" title="tactic">compute</span> <span class="id" title="tactic">in</span> <a class="idref" href="PnP.FunProg.html#sum_no_zero"><span class="id" title="definition">sum_no_zero</span></a> 5.<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 15<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: (<span class="id" title="keyword">fun</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> ⇒ <span class="id" title="keyword">match</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| 0 ⇒ <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span>.+1 ⇒ <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>) 5
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+The toy function <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#sum_no_zero"><span class="id" title="definition">sum_no_zero</span></a></span> maps every natural number <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span> to a sum
+of numbers <span class="inlinecode">1</span> ... <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span>, except for <span class="inlinecode">0</span>, which is being mapped into the
+value <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#tt"><span class="id" title="constructor">tt</span></a></span> of type <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a></span>. We define it via the <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rec"><span class="id" title="definition">nat_rec</span></a></span> combinator
+by providing it a function <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span>, which defines the type contract
+described just above.  Importantly, as the first parameter to
+<span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rec"><span class="id" title="definition">nat_rec</span></a></span>, we pass a type-level function <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span>, which maps <span class="inlinecode">0</span> to the
+<span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a></span> type and all other values to the type <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span>. The "step"
+function, which is a third parameter, of this <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rec"><span class="id" title="definition">nat_rec</span></a></span> call, makes
+use of the <i>dependent</i> pattern matching, which now explicitly
+<i>refines</i> the return type <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#n'"><span class="id" title="variable">n'</span></a></span> <span class="inlinecode">→</span> <span class="inlinecode"><span class="id" title="var">_</span></span> of the whole <span class="inlinecode"><span class="id" title="keyword">match</span></span> <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#e"><span class="id" title="variable">e</span></a></span> <span class="inlinecode"><span class="id" title="keyword">with</span></span> <span class="inlinecode"><a class="idref" href="PnP.HTT.html#ps"><span class="id" title="variable">ps</span></a></span>
+<span class="inlinecode"><span class="id" title="keyword">end</span></span> expression. This small addition allows the Coq type checker to
+relate the expected type of <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#my_plus"><span class="id" title="definition">my_plus</span></a></span>' first argument in the second
+branch to the type of the pattern matching scrutinee <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#n'"><span class="id" title="variable">n'</span></a></span>. Without
+the explicit <span class="inlinecode"><span class="id" title="keyword">return</span></span> in the pattern matching, in some cases when its
+result type depends on the value of the scrutinee, the Coq type
+checking engine will fail to unify the type of the branch and the
+overall type. In particular, had we omitted the <span class="inlinecode"><span class="id" title="keyword">return</span></span> clauses in
+the pattern matching, we would get the following type-checking error,
+indicating that Coq cannot infer that the type of <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#my_plus"><span class="id" title="definition">my_plus</span></a></span>' argument
+is always <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span>, so it complains:
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><span class="id" title="keyword">Definition</span> <span class="id" title="var">sum_no_zero'</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> := <br/>
+&nbsp;<span class="id" title="keyword">let</span>: <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> := (<span class="id" title="keyword">fun</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> ⇒ <span class="id" title="keyword">if</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> <span class="id" title="keyword">is</span> 0 <span class="id" title="keyword">then</span> <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a> <span class="id" title="keyword">else</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>) <span class="id" title="tactic">in</span><br/>
+&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rec"><span class="id" title="definition">nat_rec</span></a> <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <a class="idref" href="PnP.FunProg.html#tt"><span class="id" title="constructor">tt</span></a> (<span class="id" title="keyword">fun</span> <a class="idref" href="PnP.FunProg.html#n'"><span class="id" title="variable">n'</span></a> <a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a> ⇒ <br/>
+<span class="id" title="keyword">match</span> <a class="idref" href="PnP.FunProg.html#n'"><span class="id" title="variable">n'</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;| 0 ⇒ <span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ 1<br/>
+&nbsp;&nbsp;&nbsp;| <span class="id" title="var">n''</span>.+1 ⇒ <span class="id" title="keyword">fun</span> <a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a> ⇒ <a class="idref" href="PnP.FunProg.html#my_plus"><span class="id" title="definition">my_plus</span></a> <a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a> (<a class="idref" href="PnP.FunProg.html#n'"><span class="id" title="variable">n'</span></a>.+1) <br/>
+<span class="id" title="keyword">end</span> <a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a>) <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a>.
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><span class="id" title="var">Error</span>:<br/>
+<span class="id" title="var">In</span> <span class="id" title="var">environment</span><br/>
+<a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> : ?37<br/>
+<a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> := <span class="id" title="keyword">fun</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> ⇒ <span class="id" title="keyword">match</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| 0 ⇒ <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <span class="id" title="var">_</span>.+1 ⇒ <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> → <span class="id" title="keyword">Set</span><br/>
+<a class="idref" href="PnP.FunProg.html#n'"><span class="id" title="variable">n'</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a><br/>
+<a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a> : <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <a class="idref" href="PnP.FunProg.html#n'"><span class="id" title="variable">n'</span></a><br/>
+<span class="id" title="var">The</span> <span class="id" title="var">term</span> "m" <span class="id" title="var">has</span> <span class="id" title="keyword">type</span> "P n'" <span class="id" title="var">while</span> <span class="id" title="var">it</span> <span class="id" title="keyword">is</span> <span class="id" title="var">expected</span> <span class="id" title="var">to</span> <span class="id" title="var">have</span> <span class="id" title="keyword">type</span> "nat".
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+In general, dependent pattern matching is a quite powerful tool,
+which, however, should be used with a great caution, as it makes
+assisting the Coq type checker a rather non-trivial task. In the vast
+majority of the cases dependent pattern matching can be avoided. We
+address the curious reader to the Chapter 8 of the
+book for more examples on the subject.
+
+<div class="paragraph"> </div>
+
+ Dependent function types, akin to
+those of <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat_rec"><span class="id" title="definition">nat_rec</span></a></span> and our <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#sum_no_zero"><span class="id" title="definition">sum_no_zero</span></a></span>, which allow the type of the
+result to vary depending on the value of a function's argument, are a
+powerful way to <i>specify the behaviour</i> of functions, and therefore,
+are often used to "enforce" the dependently-typed programs to work in
+a particular expected way. In Coq, dependent function types are
+omnipresent, and are syntactically specified using the
+<span class="inlinecode"><span class="id" title="keyword">∀</span></span>-binder, similarly to the way <i>parametric</i> types are specified
+in Haskell or typed calculi like polymorphic lambda calculus (also
+known as System
+). The
+crucial difference between Coq's core calculus and System  is that
+in Coq the types can be parametrised not just by <i>types</i> but also by
+<i>values</i>. While the utility of this language "feature" can be already
+demonstrated for constructing and type-checking <i>programs</i> (for
+example, <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#sum_no_zero"><span class="id" title="definition">sum_no_zero</span></a></span>), its true strength is best demonstrated when
+using Coq as a system to construct <i>proofs</i>, which is the topic of the
+subsequent chapters.
+
+<div class="paragraph"> </div>
+
+<a name="lab15"></a><h2 class="section">Recursion principle and non-inhabited types</h2>
+
+
+<div class="paragraph"> </div>
+
+Automatically-generated recursion principles for inductively-defined
+datatypes provide a generic (although not universal) scheme to define
+recursive functions for the corresponding values. But what if a type
+is not inhabited, i.e., there are no values in it? We have already
+seen such a type---it's <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#empty"><span class="id" title="inductive">empty</span></a></span>, which corresponds to the empty
+set. As any inductive datatype in Coq, it comes with an automatically
+generated generalized recursion principle, so let us check its type:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <a class="idref" href="PnP.FunProg.html#empty_rect"><span class="id" title="definition">empty_rect</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><a class="idref" href="PnP.FunProg.html#empty_rect"><span class="id" title="definition">empty_rect</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="keyword">∀</span> (<a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> : <a class="idref" href="PnP.FunProg.html#empty"><span class="id" title="inductive">empty</span></a> → <span class="id" title="keyword">Type</span>) (<a class="idref" href="PnP.FunProg.html#e"><span class="id" title="variable">e</span></a> : <a class="idref" href="PnP.FunProg.html#empty"><span class="id" title="inductive">empty</span></a>), <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <a class="idref" href="PnP.FunProg.html#e"><span class="id" title="variable">e</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+Very curiously, the type signature of <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#empty_rect"><span class="id" title="definition">empty_rect</span></a></span> postulates that it
+is sufficient to provide a function from <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#empty"><span class="id" title="inductive">empty</span></a></span> to any type (which
+can very well be just a constant type, e.g., <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span>), and an argument
+<span class="inlinecode"><a class="idref" href="PnP.FunProg.html#e"><span class="id" title="variable">e</span></a></span> of type <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#empty"><span class="id" title="inductive">empty</span></a></span>, so the result of the call to <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#empty_rect"><span class="id" title="definition">empty_rect</span></a></span> will be
+of type <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#e"><span class="id" title="variable">e</span></a></span>. More concisely, <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#empty_rect"><span class="id" title="definition">empty_rect</span></a></span> allows us to produce a
+result of <i>any</i> type, given that we can provide an argument of type
+<span class="inlinecode"><a class="idref" href="PnP.FunProg.html#empty"><span class="id" title="inductive">empty</span></a></span>. While it might sound very surprising at the first moment,
+upon some reflection it seems like a perfectly valid principle, since
+we will <i>never</i> be able to construct the required value of type
+<span class="inlinecode"><a class="idref" href="PnP.FunProg.html#empty"><span class="id" title="inductive">empty</span></a></span> in the first place. In more fancy words, such recursion
+principle can be reformulated as the following postulate:
+
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+This is a very important insight, which will become illuminating when
+we will be discussing the reasoning with negation in the next chapter.
+
+<div class="paragraph"> </div>
+
+To conclude this section, we only mention that defining a datatype
+with no constructors is not the only way to get a type, which is not
+inhabited. For example, the following type
+<span class="inlinecode"><a class="idref" href="PnP.FunProg.html#strange"><span class="id" title="inductive">strange</span></a></span> has a constructor, which,
+however, can never be invoked, as it requires a value of it type
+itself in order to return a value: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <a name="strange"><span class="id" title="inductive">strange</span></a> : <span class="id" title="keyword">Set</span> :=  <a name="cs"><span class="id" title="constructor">cs</span></a> : <a class="idref" href="PnP.FunProg.html#strange"><span class="id" title="inductive">strange</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="PnP.FunProg.html#strange"><span class="id" title="inductive">strange</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+Therefore, an attempt to create a value of type <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#strange"><span class="id" title="inductive">strange</span></a></span> by invoking
+its single constructor will inevitably lead to an infinite,
+non-terminating, series of constructor calls, and such programs cannon
+be encoded in Coq. It is interesting to take a look at the recursion
+principle of <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#strange"><span class="id" title="inductive">strange</span></a></span>:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <a class="idref" href="PnP.FunProg.html#strange_rect"><span class="id" title="definition">strange_rect</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><a class="idref" href="PnP.FunProg.html#strange_rect"><span class="id" title="definition">strange_rect</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="keyword">∀</span> <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> : <a class="idref" href="PnP.FunProg.html#strange"><span class="id" title="inductive">strange</span></a> → <span class="id" title="keyword">Type</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">∀</span> <a class="idref" href="PnP.FunProg.html#s"><span class="id" title="variable">s</span></a> : <a class="idref" href="PnP.FunProg.html#strange"><span class="id" title="inductive">strange</span></a>, <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <a class="idref" href="PnP.FunProg.html#s"><span class="id" title="variable">s</span></a> → <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> (<a class="idref" href="PnP.FunProg.html#cs"><span class="id" title="constructor">cs</span></a> <a class="idref" href="PnP.FunProg.html#s"><span class="id" title="variable">s</span></a>)) → <span class="id" title="keyword">∀</span> <a class="idref" href="PnP.FunProg.html#s"><span class="id" title="variable">s</span></a> : <a class="idref" href="PnP.FunProg.html#strange"><span class="id" title="inductive">strange</span></a>, <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <a class="idref" href="PnP.FunProg.html#s"><span class="id" title="variable">s</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+That is, if we pose the argument <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> to be a constant type function
+<span class="inlinecode"><span class="id" title="keyword">fun</span></span> <span class="inlinecode"><span class="id" title="var">_</span></span> <span class="inlinecode">⇒</span> <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#empty"><span class="id" title="inductive">empty</span></a></span>, and the second argument to be just an identity
+function <span class="inlinecode">(<span class="id" title="keyword">fun</span></span> <span class="inlinecode"><span class="id" title="var">_</span></span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a></span> <span class="inlinecode">⇒</span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a>)</span> that maps its second argument to itself, we
+will get a function that, upon receiving argument of type <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#strange"><span class="id" title="inductive">strange</span></a></span>
+will construct an argument of type <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#empty"><span class="id" title="inductive">empty</span></a></span>! More precisely, the
+existence of a value of type <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#strange"><span class="id" title="inductive">strange</span></a></span> would allow us to create a
+value of type <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#empty"><span class="id" title="inductive">empty</span></a></span> and, therefore a value of <i>any</i> type, as was
+previously demonstrated. The following definition of the function
+<span class="inlinecode"><a class="idref" href="PnP.FunProg.html#strange_to_empty"><span class="id" title="definition">strange_to_empty</span></a></span> substantiates this observation:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="strange_to_empty"><span class="id" title="definition">strange_to_empty</span></a> (<span class="id" title="var">s</span>: <a class="idref" href="PnP.FunProg.html#strange"><span class="id" title="inductive">strange</span></a>): <a class="idref" href="PnP.FunProg.html#empty"><span class="id" title="inductive">empty</span></a> :=<br/>
+&nbsp;&nbsp;<a class="idref" href="PnP.FunProg.html#strange_rect"><span class="id" title="definition">strange_rect</span></a> (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> ⇒ <a class="idref" href="PnP.FunProg.html#empty"><span class="id" title="inductive">empty</span></a>) (<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> <span class="id" title="var">e</span> ⇒ <a class="idref" href="PnP.FunProg.html#e"><span class="id" title="variable">e</span></a>) <a class="idref" href="PnP.FunProg.html#s"><span class="id" title="variable">s</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+To summarize, designing a datatype, which is not inhabited, while not
+trivial, is not impossible, and it is a task of a designer of a
+particular type to make sure that its values in fact can be
+constructed.
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab16"></a><h1 class="section">More datatypes</h1>
+
+
+<div class="paragraph"> </div>
+
+While programming with natural numbers is fun, it is time for us to
+take a brief look at other datatypes familiar from functional
+programming, as they appear in Coq.
+
+<div class="paragraph"> </div>
+
+The type of pairs is parametrized by two arbitrary types <span class="inlinecode"><a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a></span> and
+<span class="inlinecode"><a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a></span> (by now let us think of its sort <span class="inlinecode"><span class="id" title="keyword">Type</span></span> as a generalization of
+<span class="inlinecode"><span class="id" title="keyword">Set</span></span>, which we have seen before). As in Haskell
+or OCaml, <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#prod"><span class="id" title="inductive">prod</span></a></span> can also be seen as a type-level constructor with two
+parameters that can be possibly curried:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#prod"><span class="id" title="inductive">prod</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<br/>
+<span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#prod"><span class="id" title="inductive">prod</span></a> : <span class="id" title="keyword">Type</span> → <span class="id" title="keyword">Type</span> → <span class="id" title="keyword">Type</span>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+Pairs in Coq are defined as a higher-order datatype <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#prod"><span class="id" title="inductive">prod</span></a></span> with just
+one constructor:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Print</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#prod"><span class="id" title="inductive">prod</span></a>.<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><span class="id" title="keyword">Inductive</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#prod"><span class="id" title="inductive">prod</span></a> (<a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a> : <span class="id" title="keyword">Type</span>) : <span class="id" title="keyword">Type</span> :=  <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#pair"><span class="id" title="constructor">pair</span></a> : <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> → <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a> → <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> × <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a><br/>
+<br/>
+<span class="id" title="var">For</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#pair"><span class="id" title="constructor">pair</span></a>: <span class="id" title="var">Arguments</span> <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a>, <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a> <span class="id" title="var">are</span> <span class="id" title="var">implicit</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#and"><span class="id" title="inductive">and</span></a> <span class="id" title="var">maximally</span> <span class="id" title="var">inserted</span><br/>
+<span class="id" title="var">For</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#prod"><span class="id" title="inductive">prod</span></a>: <span class="id" title="var">Argument</span> <span class="id" title="var">scopes</span> <span class="id" title="var">are</span> [<span class="id" title="var">type_scope</span> <span class="id" title="var">type_scope</span>]<br/>
+<span class="id" title="var">For</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#pair"><span class="id" title="constructor">pair</span></a>: <span class="id" title="var">Argument</span> <span class="id" title="var">scopes</span> <span class="id" title="var">are</span> [<span class="id" title="var">type_scope</span> <span class="id" title="var">type_scope</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span>]
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+The display above, besides showing how <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#prod"><span class="id" title="inductive">prod</span></a></span> is defined, specifies
+that the type arguments of <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#prod"><span class="id" title="inductive">prod</span></a></span> are <i>implicit</i>, in the sense that
+they will be inferred by the type-checker when enough information is
+provided, e.g., the arguments of the constructor <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#pair"><span class="id" title="constructor">pair</span></a></span> are
+instantiated with particular values. For instance, type arguments can
+be omitted in the following expression: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#pair"><span class="id" title="constructor">pair</span></a> 1 <a class="idref" href="PnP.FunProg.html#tt"><span class="id" title="constructor">tt</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode">(1, <a class="idref" href="PnP.FunProg.html#tt"><span class="id" title="constructor">tt</span></a>) : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> × <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+If one wants to explicitly specify the type arguments of a
+constructor, the <span class="inlinecode">@</span>-prefixed notation can be used:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> @<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#pair"><span class="id" title="constructor">pair</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> <a class="idref" href="PnP.FunProg.html#unit"><span class="id" title="inductive">unit</span></a> 1 <a class="idref" href="PnP.FunProg.html#tt"><span class="id" title="constructor">tt</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<br/>
+<span class="inlinecode"><br/>
+(1, <a class="idref" href="PnP.FunProg.html#tt"><span class="id" title="constructor">tt</span></a>) : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> × <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+Notice that the parameters of the datatype come first in the order
+they are declared, followed by the arguments of the constructor.
+
+<div class="paragraph"> </div>
+
+The last two lines following the definition of <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#prod"><span class="id" title="inductive">prod</span></a></span> specify that the
+notation for pairs is overloaded (in particular, the "<span class="inlinecode"><span class="id" title="var">_</span></span> <span class="inlinecode">×</span> <span class="inlinecode"><span class="id" title="var">_</span></span>"
+notation is also used by Coq to denote the multiplication of natural
+numbers), so it is given a specific <i>interpretation scope</i>. That is,
+when the expression <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span> <span class="inlinecode">×</span> <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a></span> will appear in the type position, it
+will be interpreted as a type <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#pair"><span class="id" title="constructor">pair</span></a></span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span> <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a></span> rather than like an
+(erroneous) attempt to "multiply" two types as if they were integers.
+
+<div class="paragraph"> </div>
+
+Coq comes with a number of functions for manipulating datatypes, such
+as pair. For instance, the first and second components of a pair:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#fst"><span class="id" title="definition">fst</span></a>.<br/>
+</div>
+
+<div class="doc">
+<br/>
+<span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#fst"><span class="id" title="definition">fst</span></a> : <span class="id" title="keyword">∀</span> <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a> : <span class="id" title="keyword">Type</span>, <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> × <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a> → <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a>
+<div class="paragraph"> </div>
+
+</span>
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#snd"><span class="id" title="definition">snd</span></a>.<br/>
+</div>
+
+<div class="doc">
+<br/>
+<span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#snd"><span class="id" title="definition">snd</span></a> : <span class="id" title="keyword">∀</span> <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a> : <span class="id" title="keyword">Type</span>, <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> × <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a> → <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+Curiously, the notation "<span class="inlinecode"><span class="id" title="var">_</span></span> <span class="inlinecode">×</span> <span class="inlinecode"><span class="id" title="var">_</span></span>" is not hard-coded into Coq, but
+rather is defined as a lightweight syntactic sugar on top of standard
+Coq syntax. Very soon we will see how one can easily extend Coq's
+syntax by defining their own notations. We will also see how is it
+possible to find what a particular notation means.
+
+<div class="paragraph"> </div>
+
+The arsenal of a functional programmer in Coq would be incomplete
+without proper sum and list datatypes: <span class="inlinecode"><span class="id" title="library">seq</span></span>  <span class="inlinecode"><span class="id" title="library">seq</span></span>. 
+
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#sum"><span class="id" title="inductive">sum</span></a>.<br/>
+</div>
+
+<div class="doc">
+<br/>
+<span class="inlinecode"><span class="id" title="keyword">Inductive</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#sum"><span class="id" title="inductive">sum</span></a> (<a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a> : <span class="id" title="keyword">Type</span>) : <span class="id" title="keyword">Type</span> :=  <span class="id" title="var">inl</span> : <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> → <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> + <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a> | <span class="id" title="var">inr</span> : <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a> → <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> + <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a>
+<div class="paragraph"> </div>
+
+</span>
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span><br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">seq</span>.<br/>
+<span class="id" title="keyword">Print</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#list"><span class="id" title="inductive">seq</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><span class="id" title="keyword">Notation</span> <span class="id" title="library">seq</span> := <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#list"><span class="id" title="inductive">list</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#list"><span class="id" title="inductive">list</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<br/>
+<span class="inlinecode"><span class="id" title="keyword">Inductive</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#list"><span class="id" title="inductive">list</span></a> (<a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> : <span class="id" title="keyword">Type</span>) : <span class="id" title="keyword">Type</span> := <span class="id" title="var">nil</span> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#list"><span class="id" title="inductive">list</span></a> <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> | <span class="id" title="var">cons</span> : <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> → <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#list"><span class="id" title="inductive">list</span></a> <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> → <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#list"><span class="id" title="inductive">list</span></a> <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+Implement the recursive function <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#alternate"><span class="id" title="definition">alternate</span></a></span> of type <span class="inlinecode"><span class="id" title="library">seq</span></span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span> <span class="inlinecode">→</span> <span class="inlinecode"><span class="id" title="library">seq</span></span>
+<span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span> <span class="inlinecode">→</span> <span class="inlinecode"><span class="id" title="library">seq</span></span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span>, so it would construct the alternation of two
+sequences according to the following "test cases".
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Eval</span> <span class="id" title="tactic">compute</span> <span class="id" title="tactic">in</span> <a class="idref" href="PnP.FunProg.html#alternate"><span class="id" title="definition">alternate</span></a> <span class="id" title="notation">[::</span> 1<span class="id" title="notation">;</span>2<span class="id" title="notation">;</span>3<span class="id" title="notation">]</span> <span class="id" title="notation">[::</span> 4<span class="id" title="notation">;</span>5<span class="id" title="notation">;</span>6<span class="id" title="notation">]</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<br/>
+<span class="inlinecode">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= [:: 1; 4; 2; 5; 3; 6]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="library">seq</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>
+<div class="paragraph"> </div>
+
+</span>
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Eval</span> <span class="id" title="tactic">compute</span> <span class="id" title="tactic">in</span> <a class="idref" href="PnP.FunProg.html#alternate"><span class="id" title="definition">alternate</span></a> <span class="id" title="notation">[::</span> 1<span class="id" title="notation">]</span> <span class="id" title="notation">[::</span> 4<span class="id" title="notation">;</span>5<span class="id" title="notation">;</span>6<span class="id" title="notation">]</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= [:: 1; 4; 5; 6]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="library">seq</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Eval</span> <span class="id" title="tactic">compute</span> <span class="id" title="tactic">in</span> <a class="idref" href="PnP.FunProg.html#alternate"><span class="id" title="definition">alternate</span></a> <span class="id" title="notation">[::</span> 1<span class="id" title="notation">;</span>2<span class="id" title="notation">;</span>3<span class="id" title="notation">]</span> <span class="id" title="notation">[::</span> 4<span class="id" title="notation">]</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= [:: 1; 4; 2; 3]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="library">seq</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+ The reason why the "obvious" elegant solution might fail is
+ that the argument is not strictly decreasing.
+
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab17"></a><h1 class="section">Searching for definitions and notations</h1>
+
+
+<div class="paragraph"> </div>
+
+Of course, we could keep enumerating datatypes and operations on them
+from the standard Coq/Ssreflect library (which is quite large), but
+it's always better for a starting Coq hacker to have a way to find
+necessary definitions on her own. Fortunately, Coq provides a very
+powerful search tool, whose capabilities are greatly amplified by
+Ssreflect. Its use is better demonstrated by examples.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Search</span> "filt".<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><span class="id" title="var">List.filter</span>  <span class="id" title="keyword">∀</span> <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> : <span class="id" title="keyword">Type</span>, (<a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> → <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>) → <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#list"><span class="id" title="inductive">list</span></a> <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> → <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#list"><span class="id" title="inductive">list</span></a> <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a><br/>
+<span class="id" title="var">List.filter_In</span><br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">∀</span> (<a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> : <span class="id" title="keyword">Type</span>) (<a class="idref" href="PnP.Rewriting.html#Rewriting.f"><span class="id" title="definition">f</span></a> : <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> → <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>) (<a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a> : <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a>) (<span class="id" title="var">l</span> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#list"><span class="id" title="inductive">list</span></a> <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;<span class="id" title="var">List.In</span> <a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a> (<span class="id" title="var">List.filter</span> <a class="idref" href="PnP.Rewriting.html#Rewriting.f"><span class="id" title="definition">f</span></a> <span class="id" title="var">l</span>) ↔ <span class="id" title="var">List.In</span> <a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="var">l</span> ∧ <a class="idref" href="PnP.Rewriting.html#Rewriting.f"><span class="id" title="definition">f</span></a> <a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a> = <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a>
+<div class="paragraph"> </div>
+
+</span>
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Search</span> "filt" (<span class="id" title="var">_</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#list"><span class="id" title="inductive">list</span></a> <span class="id" title="var">_</span>).<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><span class="id" title="var">List.filter</span>  <span class="id" title="keyword">∀</span> <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> : <span class="id" title="keyword">Type</span>, (<a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> → <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>) → <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#list"><span class="id" title="inductive">list</span></a> <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> → <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#list"><span class="id" title="inductive">list</span></a> <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+That is, the first <span class="inlinecode"><span class="id" title="keyword">Search</span></span> query just takes a string and looks for
+definitions of functions and propositions that have it as a part of
+their name. The second pattern elaborates the first by adding a
+requirement that the type of the function should include <span class="inlinecode">(<span class="id" title="var">_</span></span> <span class="inlinecode">→</span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#list"><span class="id" title="inductive">list</span></a></span>
+<span class="inlinecode"><span class="id" title="var">_</span>)</span> as a part of its return type, which narrows the search scope. As usual the
+underscores <span class="inlinecode"><span class="id" title="var">_</span></span> denote a wildcard in the pattern and can be used both
+in the name or type component. Moreover, one can use named patterns of
+the form <span class="inlinecode">?<span class="id" title="var">id</span></span> to bind free identifiers in the sub-types of a sought
+expression. For instance, the next query will list all functions with
+map-like types (notice how the higher-order constructor types are
+abstracted over using wildcards):
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Search</span> <span class="id" title="var">_</span> (<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a>?<span class="id" title="var">X</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> ?<span class="id" title="var">Y</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <span class="id" title="var">_</span> ?<span class="id" title="var">X</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <span class="id" title="var">_</span> ?<span class="id" title="var">Y</span>).<br/>
+</div>
+
+<div class="doc">
+<br/>
+<span class="inlinecode"><span class="id" title="var">option_map</span>  <span class="id" title="keyword">∀</span> <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a> : <span class="id" title="keyword">Type</span>, (<a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> → <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a>) → <span class="id" title="var">option</span> <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> → <span class="id" title="var">option</span> <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a><br/>
+<span class="id" title="var">List.map</span>  <span class="id" title="keyword">∀</span> <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a> : <span class="id" title="keyword">Type</span>, (<a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> → <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a>) → <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#list"><span class="id" title="inductive">list</span></a> <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> → <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#list"><span class="id" title="inductive">list</span></a> <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a><br/>
+...
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+If necessary, the type patterns in the query can have their types
+explicitly specified in order to avoid ambiguities due to notation
+overloading. For instance, the following search will return all
+functions and propositions that make use of the <span class="inlinecode"><span class="id" title="var">_</span></span> <span class="inlinecode">×</span> <span class="inlinecode"><span class="id" title="var">_</span></span> notation and
+operate with natural numbers: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Search</span> <span class="id" title="var">_</span> (<span class="id" title="var">_</span> <span class="id" title="notation">×</span> <span class="id" title="var">_</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#aed478b27f23b4f753c27c8ac393febc"><span class="id" title="notation">:</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+In contrast, the next query will only list the functions/propositions,
+where <span class="inlinecode"><span class="id" title="var">_</span></span> <span class="inlinecode">×</span> <span class="inlinecode"><span class="id" title="var">_</span></span> is treated as a notation for the pair datatype
+(including <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#fst"><span class="id" title="definition">fst</span></a></span> and <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#snd"><span class="id" title="definition">snd</span></a></span>, which we have already seen):
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Search</span> <span class="id" title="var">_</span> (<span class="id" title="var">_</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#11c698c8685bb8ab1cf725545c085ac4"><span class="id" title="notation">×</span></a> <span class="id" title="var">_</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#f5d444525134eb5eb84146bcde2ddd3e"><span class="id" title="notation">:</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#f5d444525134eb5eb84146bcde2ddd3e"><span class="id" title="notation">Type</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+A detailed explanation of the syntax of <span class="inlinecode"><span class="id" title="keyword">Search</span></span> tool as well as
+additional examples can be found in Chapter 10 of Ssreflect
+documentation.
+
+<div class="paragraph"> </div>
+
+When working with someone's Coq development, sometimes it might be not
+entirely obvious what particular notation means: Coq's extensible
+parser is very simple to abuse by defining completely intractable
+abbreviations, which might say a lot to the library developer, but not
+to its client. Coq provides the  
+command to help in demystifying notations as well as locating the
+position of particular definitions.  For example, the following query
+will show all the definitions of the notation "<span class="inlinecode"><span class="id" title="var">_</span></span> <span class="inlinecode">+</span> <span class="inlinecode"><span class="id" title="var">_</span></span>" as well as the
+scopes they defined in.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Locate</span> "_ + _".<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><span class="id" title="keyword">Notation</span>            <span class="id" title="keyword">Scope</span>     <br/>
+"x + y" := <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#sum"><span class="id" title="inductive">sum</span></a> <a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="PnP.LogicPrimer.html#y"><span class="id" title="variable">y</span></a>   : <span class="id" title="var">type_scope</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/>
+"m + n" := <span class="id" title="var">addn</span> <a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a>  : <span class="id" title="var">nat_scope</span>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+We can see now that the plus-notation is used in particular for the
+addition of natural numbers (in <span class="inlinecode"><span class="id" title="var">nat_scope</span></span>) and the declaration of a
+sum type (in <span class="inlinecode"><span class="id" title="var">type_scope</span></span>). Similarly to the notations, the
+ command can help finding the definition in the
+source modules they defined: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Locate</span> <span class="id" title="var">map</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<br/>
+<span class="inlinecode"><span class="id" title="var">Constant</span> <span class="id" title="var">Coq.Lists.List.map</span><br/>
+&nbsp;&nbsp;(<span class="id" title="var">shorter</span> <span class="id" title="var">name</span> <span class="id" title="var">to</span> <span class="id" title="var">refer</span> <span class="id" title="var">to</span> <span class="id" title="var">it</span> <span class="id" title="tactic">in</span> <span class="id" title="var">current</span> <span class="id" title="keyword">context</span> <span class="id" title="keyword">is</span> <span class="id" title="var">List.map</span>)<br/>
+<span class="id" title="var">Constant</span> <span class="id" title="var">Ssreflect.ssrfun.Option.map</span><br/>
+&nbsp;&nbsp;(<span class="id" title="var">shorter</span> <span class="id" title="var">name</span> <span class="id" title="var">to</span> <span class="id" title="var">refer</span> <span class="id" title="var">to</span> <span class="id" title="var">it</span> <span class="id" title="tactic">in</span> <span class="id" title="var">current</span> <span class="id" title="keyword">context</span> <span class="id" title="keyword">is</span> <span class="id" title="var">ssrfun.Option.map</span>)<br/>
+...
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+<a name="lab18"></a><h1 class="section">An alternative syntax to define inductive datatypes</h1>
+
+
+<div class="paragraph"> </div>
+
+In the previous sections of this chapter we have already seen the way
+inductive datatypes are defined in the setting "traditional"
+Coq. These are the definitions that will be displayed when using the
+<span class="inlinecode"><span class="id" title="keyword">Print</span></span> utility. However, in the rest of the development in this book,
+we will be using a version of Coq, enhanced with the Ssreflect tool,
+which, in particular, provides more concise notation for defining
+constructors. For instance, as an alternative to the standard
+definition of the product datatype, we can define our own product in
+the following way:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <a name="my_prod"><span class="id" title="inductive">my_prod</span></a> (<span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>) : <span class="id" title="keyword">Type</span> :=  <a name="my_pair"><span class="id" title="constructor">my_pair</span></a> <span class="id" title="keyword">of</span> <a class="idref" href="PnP.FunProg.html#A"><span class="id" title="variable">A</span></a> &amp; <a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+Notice that <span class="inlinecode"><a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a></span> and <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a></span> are type parameters of the whole datatype as
+well as of its single constructor <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#my_pair"><span class="id" title="constructor">my_pair</span></a></span>, which <i>additionally</i>
+required two value arguments, <i>whose</i> types are <span class="inlinecode"><a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a></span> and <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#B"><span class="id" title="variable">B</span></a></span>,
+respectively. 
+
+<div class="paragraph"> </div>
+
+Next, let us try to create a value of type <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#my_prod"><span class="id" title="inductive">my_prod</span></a></span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span> <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a></span> and
+check its type.  
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><span class="id" title="keyword">Check</span> <a class="idref" href="PnP.FunProg.html#my_pair"><span class="id" title="constructor">my_pair</span></a> 1 <a class="idref" href="PnP.FunProg.html#tt"><span class="id" title="constructor">tt</span></a>.<br/>
+<br/>
+<span class="id" title="var">Error</span>: <span class="id" title="var">The</span> <span class="id" title="var">term</span> "1" <span class="id" title="var">has</span> <span class="id" title="keyword">type</span> "nat" <span class="id" title="var">while</span> <span class="id" title="var">it</span> <span class="id" title="keyword">is</span> <span class="id" title="var">expected</span> <span class="id" title="var">to</span> <span class="id" title="var">have</span> <span class="id" title="keyword">type</span> "Type".
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+The error message is caused by the fact that the constructor has
+expected the type parameters to be provided <i>explicitly</i> first, so the
+value above should in fact have been created by calling <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#my_pair"><span class="id" title="constructor">my_pair</span></a></span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span>
+<span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a></span> <span class="inlinecode">1</span> <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#tt"><span class="id" title="constructor">tt</span></a></span>. Since mentioning types every time is tedious, we can now
+take advantage of Coq's elaboration algorithm, which is capable to
+infer them from the values of actual arguments (e.g., <span class="inlinecode">1</span> and <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#tt"><span class="id" title="constructor">tt</span></a></span>),
+and declare <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#my_pair"><span class="id" title="constructor">my_pair</span></a></span>'s type arguments as implicit:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="var">Arguments</span> <a class="idref" href="PnP.FunProg.html#my_pair"><span class="id" title="constructor">my_pair</span></a> [<span class="id" title="var">A</span> <span class="id" title="var">B</span>].<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+We have already witnessed standard Coq's datatypes making use of
+specific user-defined notations. Let us define such notation for the
+type <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#my_prod"><span class="id" title="inductive">my_prod</span></a></span> and its <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#my_pair"><span class="id" title="constructor">my_pair</span></a></span> constructor.
+ 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Notation</span> <a name="f07b3676d96b68749d342542fd80e2b0"><span class="id" title="notation">&quot;</span></a>X ** Y" := (<a class="idref" href="PnP.FunProg.html#my_prod"><span class="id" title="inductive">my_prod</span></a> <span class="id" title="var">X</span> <span class="id" title="var">Y</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 2).<br/>
+<span class="id" title="keyword">Notation</span> <a name="d404648cf97b4420c15f5edc2d83b01e"><span class="id" title="notation">&quot;</span></a>( X ,, Y )" := (<a class="idref" href="PnP.FunProg.html#my_pair"><span class="id" title="constructor">my_pair</span></a> <span class="id" title="var">X</span> <span class="id" title="var">Y</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+The <span class="inlinecode"><span class="id" title="keyword">level</span></span> part in the first notation definition is mandatory for
+potentially left-recursive notations, which is the case here, in order
+to set up parsing priorities with respect to other notations.
+
+<div class="paragraph"> </div>
+
+With these freshly defined notations we are now free to write the
+following expressions:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <a class="idref" href="PnP.FunProg.html#d404648cf97b4420c15f5edc2d83b01e"><span class="id" title="notation">(</span></a>1 <a class="idref" href="PnP.FunProg.html#d404648cf97b4420c15f5edc2d83b01e"><span class="id" title="notation">,,</span></a> 3<a class="idref" href="PnP.FunProg.html#d404648cf97b4420c15f5edc2d83b01e"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode">(1,, 3)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> ** <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+<span class="id" title="keyword">Check</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> <a class="idref" href="PnP.FunProg.html#f07b3676d96b68749d342542fd80e2b0"><span class="id" title="notation">**</span></a> <a class="idref" href="PnP.FunProg.html#unit"><span class="id" title="inductive">unit</span></a> <a class="idref" href="PnP.FunProg.html#f07b3676d96b68749d342542fd80e2b0"><span class="id" title="notation">**</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode">(<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> ** <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMDef.unit"><span class="id" title="definition">unit</span></a>) ** <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="keyword">Set</span>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+Notice that the notation "<span class="inlinecode"><span class="id" title="var">_</span></span> <span class="inlinecode">**</span> <span class="inlinecode"><span class="id" title="var">_</span></span>" for <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#my_pair"><span class="id" title="constructor">my_pair</span></a></span> by default is set to
+be left-associative. The other associativity should be declared
+explicitly, and we address the reader to the Chapter 12 of Coq
+manual for the details of the <span class="inlinecode"><span class="id" title="keyword">Notation</span></span>
+ command syntax.
+
+<div class="paragraph"> </div>
+
+<a name="lab19"></a><h1 class="section">Sections and modules</h1>
+
+
+
+<div class="paragraph"> </div>
+
+We conclude this chapter by a very brief overview of Coq's module
+system.
+
+<div class="paragraph"> </div>
+
+Sections are the simplest way to structure the programs in Coq. In
+particular, sections allow the programmer to limit the scope of
+modules imported to the current file (each compiled  file
+in the scope of the interpreter is considered as a module), as well as
+to defined <i>locally-scoped</i> variables. To see how it works, let us
+construct a section containing a utility function for natural
+numbers.  Declaring a section starts from the keyword
+<span class="inlinecode"><span class="id" title="keyword">Section</span></span>, followed by the name of the section:
+
+<div class="paragraph"> </div>
+
+ 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Section</span> <a name="NatUtilSection"><span class="id" title="section">NatUtilSection</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+We now define a <i>variable</i> <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span> of type <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span>, whose scope is lexically
+limited by the section <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection"><span class="id" title="section">NatUtilSection</span></a></span> (including its internal
+sections). One can think of variables declared this way as of
+unspecified values, which we assume to be available outside of the
+section.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Variable</span> <a name="NatUtilSection.n"><span class="id" title="variable">n</span></a>: <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+We can now define a function, implementing multiplication of natural
+numbers by means of addition. To do this, we assume the variable <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span>
+to be fixed, so the multiplication can be formulated just as a
+function of <i>one</i> parameter:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <a name="my_mult"><span class="id" title="definition">my_mult</span></a> <span class="id" title="var">m</span> := <span class="id" title="keyword">match</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">,</span></a> <a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">)</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;| <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">(</span></a>0<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">,</span></a> <span class="id" title="var">_</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">)</span></a> ⇒ 0<br/>
+&nbsp;| <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">(</span></a><span class="id" title="var">_</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">,</span></a> 0<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">)</span></a> ⇒ 0<br/>
+&nbsp;| <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">(</span></a><span class="id" title="var">_</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">,</span></a> <span class="id" title="var">m'</span><span class="id" title="notation">.+1</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#e6756e10c36f149b18b4a8741ed83079"><span class="id" title="notation">)</span></a> ⇒ <a class="idref" href="PnP.FunProg.html#my_plus"><span class="id" title="definition">my_plus</span></a> (<a class="idref" href="PnP.FunProg.html#my_mult"><span class="id" title="definition">my_mult</span></a> <span class="id" title="var">m'</span>) <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a><br/>
+&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+We now close the section by using the <span class="inlinecode"><span class="id" title="keyword">End</span></span>  keyword.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection"><span class="id" title="section">NatUtilSection</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+Unlike Haskell or Java's modules, sections in Coq are transparent:
+their internal definitions are visible outside of their bodies, and
+the definitions' names need not be qualified. The same <i>does not</i>
+apply to sections' variables. Instead, they become <i>parameters</i> of
+definitions they happened to be used in. This can be seen by printing
+the implementation of <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#my_mult"><span class="id" title="definition">my_mult</span></a></span> outside of the section
+<span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection"><span class="id" title="section">NatUtilSection</span></a></span>.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <a class="idref" href="PnP.FunProg.html#my_mult"><span class="id" title="definition">my_mult</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><a class="idref" href="PnP.FunProg.html#my_mult"><span class="id" title="definition">my_mult</span></a> = <br/>
+<span class="id" title="keyword">fun</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> ⇒<br/>
+<span class="id" title="keyword">fix</span> <a class="idref" href="PnP.FunProg.html#my_mult"><span class="id" title="definition">my_mult</span></a> (<a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>) : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">let</span> (<span class="id" title="var">n0</span>, <a class="idref" href="PnP.LogicPrimer.html#y"><span class="id" title="variable">y</span></a>) := (<a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a>, <a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a>) <span class="id" title="tactic">in</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">n0</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| 0 ⇒ 0<br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span>.+1 ⇒ <span class="id" title="keyword">match</span> <a class="idref" href="PnP.LogicPrimer.html#y"><span class="id" title="variable">y</span></a> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| 0 ⇒ 0<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| <a class="idref" href="PnP.FunProg.html#m'"><span class="id" title="variable">m'</span></a>.+1 ⇒ <a class="idref" href="PnP.FunProg.html#my_plus"><span class="id" title="definition">my_plus</span></a> (<a class="idref" href="PnP.FunProg.html#my_mult"><span class="id" title="definition">my_mult</span></a> <a class="idref" href="PnP.FunProg.html#m'"><span class="id" title="variable">m'</span></a>) <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> → <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> → <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+We can see now that the variable <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span> became an actual parameter of
+<span class="inlinecode"><a class="idref" href="PnP.FunProg.html#my_mult"><span class="id" title="definition">my_mult</span></a></span>, so the function now takes <i>two</i> parameters, just as
+expected.
+
+<div class="paragraph"> </div>
+
+An alternative to sections in Coq, which provides better
+encapsulation, are <i>modules</i>. A module,  similarly to a
+section, can contain locally-declared variables, sections and modules
+(but not modules within sections!). However, the internals of a module
+are not implicitly exposed to the outside, instead they should be
+either referred to by <i>qualified</i> names or exported explicitly by
+means of putting them into a submodule and via the command
+<span class="inlinecode"><span class="id" title="keyword">Export</span></span>, just as demonstrated below:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <a name="NatUtilModule"><span class="id" title="module">NatUtilModule</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <a name="NatUtilModule.my_fact"><span class="id" title="definition">my_fact</span></a> <span class="id" title="var">n</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">if</span> <a class="idref" href="PnP.FunProg.html#n"><span class="id" title="variable">n</span></a> <span class="id" title="keyword">is</span> <span class="id" title="var">n'</span><span class="id" title="notation">.+1</span> <span class="id" title="keyword">then</span> <a class="idref" href="PnP.FunProg.html#my_mult"><span class="id" title="definition">my_mult</span></a> <a class="idref" href="PnP.FunProg.html#n"><span class="id" title="variable">n</span></a> (<a class="idref" href="PnP.FunProg.html#my_fact"><span class="id" title="definition">my_fact</span></a> <span class="id" title="var">n'</span>) <span class="id" title="keyword">else</span> 1.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <a name="NatUtilModule.Exports"><span class="id" title="module">Exports</span></a>.<br/>
+<span class="id" title="keyword">Definition</span> <a name="NatUtilModule.Exports.fact"><span class="id" title="definition">fact</span></a> := <a class="idref" href="PnP.FunProg.html#NatUtilModule.my_fact"><span class="id" title="definition">my_fact</span></a>.<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="PnP.FunProg.html#NatUtilModule.Exports"><span class="id" title="module">Exports</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <a class="idref" href="PnP.FunProg.html#NatUtilModule"><span class="id" title="module">NatUtilModule</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+The submodule  creates a synonym <span class="inlinecode"><a class="idref" href="PnP.HTT.html#HTT.fact"><span class="id" title="definition">fact</span></a></span> for the
+function <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilModule.my_fact"><span class="id" title="definition">my_fact</span></a></span>, defined outside of it. The following command
+explicitly exports all internals of the module
+, therefore making <span class="inlinecode"><a class="idref" href="PnP.HTT.html#HTT.fact"><span class="id" title="definition">fact</span></a></span> visible
+outside of <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilModule"><span class="id" title="module">NatUtilModule</span></a></span>.
+
+<div class="paragraph"> </div>
+
+ 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Export</span> <span class="id" title="var">NatUtilModule.Exports</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><span class="id" title="keyword">Check</span> <a class="idref" href="PnP.FunProg.html#NatUtilModule.my_fact"><span class="id" title="definition">my_fact</span></a>.<br/>
+<br/>
+<span class="id" title="var">Error</span>: <span class="id" title="var">The</span> <span class="id" title="var">reference</span> <a class="idref" href="PnP.FunProg.html#NatUtilModule.my_fact"><span class="id" title="definition">my_fact</span></a> <span class="id" title="var">was</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#not"><span class="id" title="definition">not</span></a> <span class="id" title="var">found</span> <span class="id" title="tactic">in</span> <span class="id" title="var">the</span> <span class="id" title="var">current</span> <span class="id" title="var">environment</span>.
+<div class="paragraph"> </div>
+
+</span>
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <a class="idref" href="PnP.FunProg.html#fact"><span class="id" title="definition">fact</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<br/>
+<span class="inlinecode"><a class="idref" href="PnP.HTT.html#HTT.fact"><span class="id" title="definition">fact</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> → <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>
+<div class="paragraph"> </div>
+
+</span>
+</div>
+<div class="code">
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+<script src="https://jscoq.github.io/node_modules/jscoq/ui-js/jscoq-loader.js" type="text/javascript"></script>
+<script src="../js/jscoq-embed.js" type="text/javascript"></script>
+</html>

@@ -1,0 +1,1761 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link href="../js/clean.css" rel="stylesheet" type="text/css" />
+<title>PnP.BoolReflect</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library PnP.BoolReflect</h1>
+
+<div class="code">
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+In , we have seen how custom rewriting rules
+and truth tables can be encoded in Coq using its support for indexed
+datatype families, so they are of great help for constructing the
+proofs by case analysis and rewriting. In this chapter, we will show
+how the custom rewriting machinery can be taken to the whole new level
+and be used to facilitate the reasoning about <i>computable</i> properties
+and predicates. We will consider a series of insights that lead to the
+idea of the <i>small-scale reflection</i>, the heart of the Ssreflect
+  framework, which blurs the boundaries
+between computable predicates defined in the sort <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> (see
+) and Coq's recursive functions returning a
+result of type <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span> (in the spirit of the definitions that we have
+seen in ). That said, in the vast number of
+cases these two are just the sides of the same coin and, hence, should
+be treated uniformly, serving to facilitate the reasoning in two
+different directions: 
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> expressing quantifications and building the proofs by means of
+  <i>constructive reasoning</i> with logical connectives as datatypes
+  defined in the sort <span class="inlinecode"><span class="id" title="keyword">Prop</span></span>;
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> employing brute-force computations for quantifier-free goals within
+  the Coq framework itself, taken as a programming language, in order
+  to reduce the goals to be proved by means of simply <i>computing</i>
+  them.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+We will elaborate more on the differences between predicates stated by
+means of <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> and <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span> in . The term
+<i>small-scale reflection</i>, which gives the name to the whole framework
+of Ssreflect, emphasizes the two complementary ways of building
+proofs: by means of intuitionistic inference (i.e., using the
+constructors of datatypes defined in <span class="inlinecode"><span class="id" title="keyword">Prop</span></span>) and by means of mere
+computation (i.e., with <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span>-returning function). These two ways,
+therefore, serve as each other's "reflections" and, moreover, both are
+implemented within the same system, without the need to appeal to
+Coq's meta-object protocol, which makes this reflection <i>small-scale</i>.
+
+<div class="paragraph"> </div>
+
+Unfortunately, the proper explanation of the implementation of the
+reflection mechanism between <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> and <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span> in Ssreflect strongly
+relies on the <i>views</i> machinery, so let us begin by describing it
+first.
+
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+<a name="lab44"></a><h1 class="section">Proving with views in Ssreflect</h1>
+
+
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">From</span> <span class="id" title="var">mathcomp</span><br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="library">ssreflect</span> <span class="id" title="library">ssrnat</span> <span class="id" title="library">prime</span> <span class="id" title="library">ssrbool</span> <span class="id" title="library">eqtype</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+Let us assume we have the following implication to prove:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.imp_trans4"><span class="id" title="lemma">imp_trans4</span></a> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">R</span> <span class="id" title="var">S</span>: <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="PnP.BoolReflect.html#Q"><span class="id" title="variable">Q</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#R"><span class="id" title="variable">R</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="PnP.BoolReflect.html#S"><span class="id" title="variable">S</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#Q"><span class="id" title="variable">Q</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="PnP.BoolReflect.html#R"><span class="id" title="variable">R</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="PnP.BoolReflect.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="PnP.BoolReflect.html#S"><span class="id" title="variable">S</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">move</span>⇒<span class="id" title="var">H1</span> <span class="id" title="var">H2</span> <span class="id" title="var">H3</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode">&nbsp;&nbsp;<a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> : <span class="id" title="keyword">Type</span><br/>
+&nbsp;&nbsp;<a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a> : <span class="id" title="keyword">Type</span><br/>
+&nbsp;&nbsp;<a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.R"><span class="id" title="definition">R</span></a> : <span class="id" title="keyword">Type</span><br/>
+&nbsp;&nbsp;<a class="idref" href="PnP.BoolReflect.html#BoolReflect.S"><span class="id" title="axiom">S</span></a> : <span class="id" title="keyword">Type</span><br/>
+&nbsp;&nbsp;<span class="id" title="var">H1</span> : <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> → <a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a><br/>
+&nbsp;&nbsp;<span class="id" title="var">H2</span> : <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.R"><span class="id" title="definition">R</span></a> → <a class="idref" href="PnP.BoolReflect.html#BoolReflect.S"><span class="id" title="axiom">S</span></a><br/>
+&nbsp;&nbsp;<span class="id" title="var">H3</span> : <a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a> → <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.R"><span class="id" title="definition">R</span></a><br/>
+&nbsp;&nbsp;============================<br/>
+&nbsp;&nbsp;&nbsp;<a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> → <a class="idref" href="PnP.BoolReflect.html#BoolReflect.S"><span class="id" title="axiom">S</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+Since we are proficient in the proofs via implications, it is not
+difficult to construct the explicit proof term by a series of <span class="inlinecode"><span class="id" title="tactic">apply</span>:</span>
+tactic calls or via the <span class="inlinecode"><span class="id" title="tactic">exact</span>:</span> tactic, as it has been show in
+. Let us do something different, though,
+namely <i>weaken</i> the top assumption of the goal by means of applying
+the hypothesis <span class="inlinecode"><span class="id" title="var">H1</span></span> to it, so the overall goal will become <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a></span> <span class="inlinecode">→</span> <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.S"><span class="id" title="axiom">S</span></a></span>.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="tactic">move</span>⇒<span class="id" title="var">p</span>; <span class="id" title="tactic">move</span>: (<span class="id" title="var">H1</span> <span class="id" title="var">p</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+This proof pattern of "switching the view" turns out to be so frequent
+that Ssreflect introduces a special <i>view</i> tactical  for
+it, which is typically combined with the standard <span class="inlinecode"><span class="id" title="tactic">move</span></span> or <span class="inlinecode"><span class="id" title="tactic">case</span></span>
+tactics. In particular, the last proof line could be replaced by the
+following:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Undo</span>.<br/>
+<span class="id" title="tactic">move</span>/<span class="id" title="var">H1</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode">&nbsp;&nbsp;...<br/>
+&nbsp;&nbsp;<span class="id" title="var">H1</span> : <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> → <a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a><br/>
+&nbsp;&nbsp;<span class="id" title="var">H2</span> : <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.R"><span class="id" title="definition">R</span></a> → <a class="idref" href="PnP.BoolReflect.html#BoolReflect.S"><span class="id" title="axiom">S</span></a><br/>
+&nbsp;&nbsp;<span class="id" title="var">H3</span> : <a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a> → <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.R"><span class="id" title="definition">R</span></a><br/>
+&nbsp;&nbsp;============================<br/>
+&nbsp;&nbsp;&nbsp;<a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a> → <a class="idref" href="PnP.BoolReflect.html#BoolReflect.S"><span class="id" title="axiom">S</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+The assumption <span class="inlinecode"><span class="id" title="var">H1</span></span> used for weakening is usually referred to as a
+ <i>view lemma</i>. The spaces before and after
+ are optional. One can also <i>chain</i> the views into one
+series, so the current proof can be completed as follows:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="tactic">by</span> <span class="id" title="tactic">move</span>/<span class="id" title="var">H3</span> /<span class="id" title="var">H2</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<a name="lab45"></a><h2 class="section">Combining views and bookkeeping</h2>
+
+
+<div class="paragraph"> </div>
+
+The view tactical can be also combined with the standard bookkeeping
+machinery, so it will apply the specified view lemma to the
+corresponding assumption of the goal, as demonstrated by the following
+proof script, which use the partially-applied assumption <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.H"><span class="id" title="axiom">H</span></a></span> <span class="inlinecode"><a class="idref" href="PnP.Rewriting.html#p"><span class="id" title="variable">p</span></a></span> as a
+view lemma:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Goal</span> <a name="BoolReflect.Unnamed_thm"><span class="id" title="definition">∀</span></a> <a name="BoolReflect.Unnamed_thm"><span class="id" title="definition">P</span></a> <a name="BoolReflect.Unnamed_thm"><span class="id" title="definition">Q</span></a> <a name="BoolReflect.Unnamed_thm"><span class="id" title="definition">R</span></a><a name="BoolReflect.Unnamed_thm"><span class="id" title="definition">,</span></a> <a name="BoolReflect.Unnamed_thm"><span class="id" title="definition">P</span></a> <a name="BoolReflect.Unnamed_thm"><span class="id" title="definition">→</span></a> <a name="BoolReflect.Unnamed_thm"><span class="id" title="definition">(</span></a><a name="BoolReflect.Unnamed_thm"><span class="id" title="definition">P</span></a> <a name="BoolReflect.Unnamed_thm"><span class="id" title="definition">→</span></a> <a name="BoolReflect.Unnamed_thm"><span class="id" title="definition">Q</span></a> <a name="BoolReflect.Unnamed_thm"><span class="id" title="definition">→</span></a> <a name="BoolReflect.Unnamed_thm"><span class="id" title="definition">R</span></a><a name="BoolReflect.Unnamed_thm"><span class="id" title="definition">)</span></a> <a name="BoolReflect.Unnamed_thm"><span class="id" title="definition">→</span></a> <a name="BoolReflect.Unnamed_thm"><span class="id" title="definition">Q</span></a> <a name="BoolReflect.Unnamed_thm"><span class="id" title="definition">→</span></a> <a name="BoolReflect.Unnamed_thm"><span class="id" title="definition">R</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">by</span> <span class="id" title="tactic">move</span>⇒<span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">R</span> <span class="id" title="var">p</span> <span class="id" title="var">H</span> /(<span class="id" title="var">H</span> <span class="id" title="var">p</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+In fact, this proof can be shortened even further by using the view
+notation for the <i>top</i> assumption (denoted using the underscore):
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Undo</span>.<br/>
+<span class="id" title="tactic">move</span>⇒ <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">R</span> <span class="id" title="var">p</span>.<br/>
+<span class="id" title="tactic">by</span> <span class="id" title="tactic">move</span>/(<span class="id" title="var">_</span> <span class="id" title="var">p</span>).<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+The last proof script first moved four assumptions to the context, so
+the goal became <span class="inlinecode">(<a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> <span class="inlinecode">→</span> <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a></span> <span class="inlinecode">→</span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.R"><span class="id" title="definition">R</span></a>)</span> <span class="inlinecode">→</span> <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a></span> <span class="inlinecode">→</span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.R"><span class="id" title="definition">R</span></a></span>. Next, it partially applied
+the top assumption <span class="inlinecode">(<a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> <span class="inlinecode">→</span> <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a></span> <span class="inlinecode">→</span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.R"><span class="id" title="definition">R</span></a>)</span> to <span class="inlinecode"><a class="idref" href="PnP.Rewriting.html#p"><span class="id" title="variable">p</span></a></span> <span class="inlinecode">:</span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> from the context and
+moved the result back to the goal, so it became <span class="inlinecode">(<a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a></span> <span class="inlinecode">→</span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.R"><span class="id" title="definition">R</span></a>)</span> <span class="inlinecode">→</span> <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a></span> <span class="inlinecode">→</span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.R"><span class="id" title="definition">R</span></a></span>,
+which is trivially provable.
+
+<div class="paragraph"> </div>
+
+It is also possible to use views in combination with the <span class="inlinecode"><span class="id" title="tactic">case</span></span>
+tactics, which first performs the "view switch" via the view lemma
+provided and then case-analysed on the result, as demonstrated by the
+following proof script:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Goal</span> <a name="BoolReflect.Unnamed_thm0"><span class="id" title="definition">∀</span></a> <a name="BoolReflect.Unnamed_thm0"><span class="id" title="definition">P</span></a> <a name="BoolReflect.Unnamed_thm0"><span class="id" title="definition">Q</span></a> <a name="BoolReflect.Unnamed_thm0"><span class="id" title="definition">R</span></a><a name="BoolReflect.Unnamed_thm0"><span class="id" title="definition">,</span></a> <a name="BoolReflect.Unnamed_thm0"><span class="id" title="definition">(</span></a><a name="BoolReflect.Unnamed_thm0"><span class="id" title="definition">P</span></a> <a name="BoolReflect.Unnamed_thm0"><span class="id" title="definition">→</span></a> <a name="BoolReflect.Unnamed_thm0"><span class="id" title="definition">Q</span></a> <a name="BoolReflect.Unnamed_thm0"><span class="id" title="definition">∧</span></a> <a name="BoolReflect.Unnamed_thm0"><span class="id" title="definition">R</span></a><a name="BoolReflect.Unnamed_thm0"><span class="id" title="definition">)</span></a> <a name="BoolReflect.Unnamed_thm0"><span class="id" title="definition">→</span></a> <a name="BoolReflect.Unnamed_thm0"><span class="id" title="definition">P</span></a> <a name="BoolReflect.Unnamed_thm0"><span class="id" title="definition">→</span></a> <a name="BoolReflect.Unnamed_thm0"><span class="id" title="definition">R</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">move</span>⇒ <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">R</span> <span class="id" title="var">H</span>.<br/>
+<span class="id" title="tactic">by</span> <span class="id" title="tactic">case</span>/<span class="id" title="var">H</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+What has happened is that the combined tactic <span class="inlinecode"><span class="id" title="tactic">case</span>/<a class="idref" href="PnP.BoolReflect.html#BoolReflect.H"><span class="id" title="axiom">H</span></a></span> first switched
+the top assumption of the goal from <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> to <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a></span> <span class="inlinecode">∧</span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.R"><span class="id" title="definition">R</span></a></span> and then
+case-analysed on it, which gave the proof of <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.R"><span class="id" title="definition">R</span></a></span> right away, allowing
+us to conclude the proof.
+
+<div class="paragraph"> </div>
+
+<a name="lab46"></a><h2 class="section">Using views with equivalences</h2>
+
+
+
+<div class="paragraph"> </div>
+
+So far we have explored only views that help to weaken the hypothesis
+using the view lemma, which is an implication. In fact, Ssreflect's
+view mechanism is elaborate enough to deal with view lemmas defined
+by means of equivalence (double implication) , and the
+system can figure out itself, "in which direction" the view lemma
+should be applied. Let us demonstrate it with the following example,
+which makes use of the hypothesis <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.STequiv"><span class="id" title="axiom">STequiv</span></a></span>, whose
+nature is irrelevant for the illustration purposes:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Variables</span> <a name="BoolReflect.S"><span class="id" title="axiom">S</span></a> <a name="BoolReflect.T"><span class="id" title="axiom">T</span></a>: <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <span class="id" title="keyword">Prop</span>.<br/>
+<span class="id" title="keyword">Hypothesis</span> <a name="BoolReflect.STequiv"><span class="id" title="axiom">STequiv</span></a> : <span class="id" title="keyword">∀</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>, <a class="idref" href="PnP.BoolReflect.html#BoolReflect.T"><span class="id" title="axiom">T</span></a> <a class="idref" href="PnP.BoolReflect.html#a"><span class="id" title="variable">a</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">↔</span></a> <a class="idref" href="PnP.BoolReflect.html#BoolReflect.S"><span class="id" title="axiom">S</span></a> (<a class="idref" href="PnP.BoolReflect.html#a"><span class="id" title="variable">a</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#081ff67d3116402bb680e8692aa39185"><span class="id" title="notation">||</span></a> <a class="idref" href="PnP.BoolReflect.html#b"><span class="id" title="variable">b</span></a>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.ST_False"><span class="id" title="lemma">ST_False</span></a> <span class="id" title="var">a</span> <span class="id" title="var">b</span>: <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#BoolReflect.T"><span class="id" title="axiom">T</span></a> <a class="idref" href="PnP.BoolReflect.html#a"><span class="id" title="variable">a</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#False"><span class="id" title="inductive">False</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="PnP.BoolReflect.html#BoolReflect.S"><span class="id" title="axiom">S</span></a> (<a class="idref" href="PnP.BoolReflect.html#a"><span class="id" title="variable">a</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#081ff67d3116402bb680e8692aa39185"><span class="id" title="notation">||</span></a> <a class="idref" href="PnP.BoolReflect.html#b"><span class="id" title="variable">b</span></a>) <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#False"><span class="id" title="inductive">False</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">by</span> <span class="id" title="tactic">move</span>⇒<span class="id" title="var">H</span> /<a class="idref" href="PnP.BoolReflect.html#BoolReflect.STequiv"><span class="id" title="axiom">STequiv</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<a name="lab47"></a><h2 class="section">Declaring view hints</h2>
+
+
+<div class="paragraph"> </div>
+
+In the example from , we have seen how
+views can deal with equivalences. The mentioned elaboration, which
+helped the system to recognize, in which direction the double
+implication hypothesis <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.STequiv"><span class="id" title="axiom">STequiv</span></a></span> should have been used, is not
+hard-coded into Ssreflect. Instead, it is provided by a flexible
+mechanism of  <i>view hints</i>, which allows one to
+specify view lemmas that should be applied <i>implicitly</i> whenever it is
+necessary and can be figured out unambiguously.
+
+<div class="paragraph"> </div>
+
+In the case of the proof of the <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.ST_False"><span class="id" title="lemma">ST_False</span></a></span> lemma the view hint <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#iffRL"><span class="id" title="lemma">iffRL</span></a></span>
+from the included module <span class="inlinecode"><span class="id" title="library">ssreflect</span></span><span class="inlinecode"><span class="id" title="library">ssrbool</span></span>  has been "fired" in
+order to adapt the hypothesis <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.STequiv"><span class="id" title="axiom">STequiv</span></a></span>, so the adapted variant could
+be applied as a view lemma to the argument of type <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.S"><span class="id" title="axiom">S</span></a></span> <span class="inlinecode">(<a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a></span> <span class="inlinecode">||</span> <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.b"><span class="id" title="variable">b</span></a>)</span>.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#iffRL"><span class="id" title="lemma">iffRL</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#iffRL"><span class="id" title="lemma">iffRL</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="keyword">∀</span> <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a> : <span class="id" title="keyword">Prop</span>, (<a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> ↔ <a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a>) → <a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a> → <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+The type of <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#iffRL"><span class="id" title="lemma">iffRL</span></a></span> reveals that what it does is simply switching the
+equivalence to the implication, which works right-to-left, as captured
+by the name. Let us now redo the proof of the <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.ST_False"><span class="id" title="lemma">ST_False</span></a></span> lemma to see
+what is happening under the hood:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.ST_False'"><span class="id" title="lemma">ST_False'</span></a> <span class="id" title="var">a</span> <span class="id" title="var">b</span>: <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#BoolReflect.T"><span class="id" title="axiom">T</span></a> <a class="idref" href="PnP.BoolReflect.html#a"><span class="id" title="variable">a</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#False"><span class="id" title="inductive">False</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="PnP.BoolReflect.html#BoolReflect.S"><span class="id" title="axiom">S</span></a> (<a class="idref" href="PnP.BoolReflect.html#a"><span class="id" title="variable">a</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#081ff67d3116402bb680e8692aa39185"><span class="id" title="notation">||</span></a> <a class="idref" href="PnP.BoolReflect.html#b"><span class="id" title="variable">b</span></a>) <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#False"><span class="id" title="inductive">False</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">move</span>⇒ <span class="id" title="var">H</span>.<br/>
+<span class="id" title="tactic">move</span>/(<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#iffRL"><span class="id" title="lemma">iffRL</span></a> (<a class="idref" href="PnP.BoolReflect.html#BoolReflect.STequiv"><span class="id" title="axiom">STequiv</span></a> <span class="id" title="var">a</span> <span class="id" title="var">b</span>)).<br/>
+<span class="id" title="var">done</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+The view switch on the second line of the proof is what has been done
+implicitly in the previous case: the implicit view <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#iffRL"><span class="id" title="lemma">iffRL</span></a></span> has been
+applied to the call of <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.STequiv"><span class="id" title="axiom">STequiv</span></a></span>, which was in its turn supplied the
+necessary arguments <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a></span> and <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.b"><span class="id" title="variable">b</span></a></span>, inferred by the system from the goal,
+so the type of <span class="inlinecode">(<a class="idref" href="PnP.BoolReflect.html#BoolReflect.STequiv"><span class="id" title="axiom">STequiv</span></a></span> <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a></span> <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.b"><span class="id" title="variable">b</span></a>)</span> would match the parameter type of
+<span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#iffRL"><span class="id" title="lemma">iffRL</span></a></span>, and the whole application would allow to make a view switch
+in the goal.  What is left behind the scenes is the rest of the
+attempts made by Coq/Ssreflect in its search for a suitable implicit
+view, which ended when the system has finally picked <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#iffRL"><span class="id" title="lemma">iffRL</span></a></span>.
+
+<div class="paragraph"> </div>
+
+In general, the design of powerful view hints is non-trivial, as they
+should capture precisely the situation when the "view switch" is
+absolutely necessary and the implicit views will not "fire"
+spuriously. In the same time, implicit view hints is what allows for
+the smooth implementation of the boolean reflection, as we will
+discuss in .
+
+<div class="paragraph"> </div>
+
+<a name="lab48"></a><h2 class="section">Applying view lemmas to the goal</h2>
+
+
+<div class="paragraph"> </div>
+
+Similarly to how they are used for <i>assumptions</i>, views can be used to
+interpret the goal by means of combining the Coq's standard <span class="inlinecode"><span class="id" title="tactic">apply</span></span>
+and <span class="inlinecode"><span class="id" title="tactic">exact</span></span> tactics with the view tactical. In the case
+if <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.H"><span class="id" title="axiom">H</span></a></span> is a view lemma, which is just an implication <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> <span class="inlinecode">→</span> <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a></span>, where
+<span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a></span> is the statement of the goal, the enhanced tactic <span class="inlinecode"><span class="id" title="tactic">apply</span>/</span> <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.H"><span class="id" title="axiom">H</span></a></span> will
+work exactly as the standard Ssreflect's <span class="inlinecode"><span class="id" title="tactic">apply</span>:</span>, that is, it will
+replace the goal <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a></span> with <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.H"><span class="id" title="axiom">H</span></a></span>'s assumption <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> to prove.
+
+<div class="paragraph"> </div>
+
+However, interpreting goals via views turns out to be very beneficial
+in the presence of implicit view hints. For example, let us consider
+the following proposition to prove.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="BoolReflect.TS_neg"><span class="id" title="definition">TS_neg</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">a</span>, <a class="idref" href="PnP.BoolReflect.html#BoolReflect.T"><span class="id" title="axiom">T</span></a> (<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#negb"><span class="id" title="definition">negb</span></a> <a class="idref" href="PnP.BoolReflect.html#a"><span class="id" title="variable">a</span></a>) <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="PnP.BoolReflect.html#BoolReflect.S"><span class="id" title="axiom">S</span></a> (<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#081ff67d3116402bb680e8692aa39185"><span class="id" title="notation">(</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#negb"><span class="id" title="definition">negb</span></a> <a class="idref" href="PnP.BoolReflect.html#a"><span class="id" title="variable">a</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#081ff67d3116402bb680e8692aa39185"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#081ff67d3116402bb680e8692aa39185"><span class="id" title="notation">||</span></a> <a class="idref" href="PnP.BoolReflect.html#a"><span class="id" title="variable">a</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">move</span>⇒<span class="id" title="var">a</span> <span class="id" title="var">H</span>.<br/>
+<span class="id" title="tactic">apply</span>/<a class="idref" href="PnP.BoolReflect.html#BoolReflect.STequiv"><span class="id" title="axiom">STequiv</span></a>.<br/>
+<span class="id" title="var">done</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+The view switch on the goal via <span class="inlinecode"><span class="id" title="tactic">apply</span>/<a class="idref" href="PnP.BoolReflect.html#BoolReflect.STequiv"><span class="id" title="axiom">STequiv</span></a></span> immediately changed
+the goal from <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.S"><span class="id" title="axiom">S</span></a></span> <span class="inlinecode">((<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#negb"><span class="id" title="definition">negb</span></a></span> <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a>)</span> <span class="inlinecode">||</span> <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a>)</span> to <span class="inlinecode"><a class="idref" href="PnP.HTT.html#HTT.LList.T"><span class="id" title="variable">T</span></a></span> <span class="inlinecode">(<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#negb"><span class="id" title="definition">negb</span></a></span> <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a>)</span>, so the rest of the
+proof becomes trivial. Again, notice that the system managed to infer
+the right arguments for the <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.STequiv"><span class="id" title="axiom">STequiv</span></a></span> hypothesis by analysing the
+goal.
+
+<div class="paragraph"> </div>
+
+Now, if we print the body of <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.TS_neg"><span class="id" title="definition">TS_neg</span></a></span>, we will be able to see how an
+application of the implicit application of the view lemma <span class="inlinecode"><span class="id" title="var">iffLR</span></span> of
+type <span class="inlinecode"><span class="id" title="keyword">∀</span></span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="keyword">Prop</span>,</span> <span class="inlinecode">(<a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> <span class="inlinecode">↔</span> <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a>)</span> <span class="inlinecode">→</span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> <span class="inlinecode">→</span> <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a></span> has been inserted,
+allowing for the construction of the proof term:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <a class="idref" href="PnP.BoolReflect.html#BoolReflect.TS_neg"><span class="id" title="definition">TS_neg</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.TS_neg"><span class="id" title="definition">TS_neg</span></a> = <br/>
+&nbsp;&nbsp;<span class="id" title="keyword">fun</span> (<a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>) (<a class="idref" href="PnP.BoolReflect.html#BoolReflect.H"><span class="id" title="axiom">H</span></a> : <a class="idref" href="PnP.HTT.html#HTT.LList.T"><span class="id" title="variable">T</span></a> (<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#negb"><span class="id" title="definition">negb</span></a> <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a>)) ⇒<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">F</span> : <a class="idref" href="PnP.HTT.html#HTT.LList.T"><span class="id" title="variable">T</span></a> (<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#negb"><span class="id" title="definition">negb</span></a> <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">iffLR</span> (<a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a>:=<a class="idref" href="PnP.BoolReflect.html#BoolReflect.S"><span class="id" title="axiom">S</span></a> (<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#negb"><span class="id" title="definition">negb</span></a> <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a> || <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a>)) (<a class="idref" href="PnP.BoolReflect.html#BoolReflect.STequiv"><span class="id" title="axiom">STequiv</span></a> (<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#negb"><span class="id" title="definition">negb</span></a> <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a>) <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a>) <span class="id" title="var">F</span>) <a class="idref" href="PnP.BoolReflect.html#BoolReflect.H"><span class="id" title="axiom">H</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="keyword">∀</span> <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>, <a class="idref" href="PnP.HTT.html#HTT.LList.T"><span class="id" title="variable">T</span></a> (<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#negb"><span class="id" title="definition">negb</span></a> <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a>) → <a class="idref" href="PnP.BoolReflect.html#BoolReflect.S"><span class="id" title="axiom">S</span></a> (<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#negb"><span class="id" title="definition">negb</span></a> <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a> || <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a>)
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab49"></a><h1 class="section"></h1>
+
+
+
+<div class="paragraph"> </div>
+
+As we have already explored in the previous chapters, in CIC, the
+logical foundation of Coq, there is a number of important distinctions
+between logical propositions and boolean values.  In particular, there
+is an infinite number of ways to represent different propositions in
+the sort <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> by means of defining the datatypes. In contrast, the
+type <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span> is represented just by two values: <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a></span> and
+<span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a></span>. Moreover, as it was discussed in , in
+Coq only those propositions are considered to be <i>true</i>, whose proof
+term can be constructed. And, of course, there is no such thing as a
+"proof term of <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a></span>", as <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a></span> is simply a value.
+
+<div class="paragraph"> </div>
+
+A more interesting question, though, is for which propositions <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span>
+from the sort <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> the proofs can be computed <i>automatically</i> by
+means of running a program, whose result will be an answer to the
+question "Whether <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> holds?". Therefore, such programs should always
+<i>terminate</i> and, upon terminating, say "true" or "false". The
+propositions, for which a construction of such programs (even a very
+inefficient one) is possible, are referred to 
+as <i>decidable</i> ones. Alas, as it was discussed in
+, quite a lot of
+interesting propositions are undecidable. Such properties include the
+classical halting problem  ("Whether the
+program <span class="inlinecode"><a class="idref" href="PnP.Rewriting.html#p"><span class="id" title="variable">p</span></a></span> terminates or not?") and any higher-order formulae, i.e.,
+such that contain quantifiers. For instance, it is not possible to
+implement a higher-order function, which would take two arbitrary
+functions  and  of type <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span> <span class="inlinecode">→</span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a></span> and return a boolean
+answer, which would indicate whether these two functions are equal
+(point-wise) or not, as it would amount to checking the result of the
+both function on each natural number, which, clearly, wouldn't
+terminate. Therefore, propositional equality of functions is a good
+example of a proposition, which is undecidable in general, so we
+cannot provide a terminating procedure for any values of its arguments
+(i.e.,  and ).
+
+<div class="paragraph"> </div>
+
+However, the <i>undecidability</i> of higher-order propositions (like the
+propositional equality of functions) does not make them <i>non-provable</i>
+for particular cases, as we have clearly observed thorough the past
+few chapters. It usually takes a human intuition, though, to construct
+a proof of an undecidable proposition by means of combining a number
+of hypotheses (i.e., constructing a proof term), which is what one
+does when building a proof using tactics in Coq. For instance, if we
+have some extra insight about the two functions  and , which
+are checked for equality, we might be able to construct the proof of
+them being equal or not, in the similar ways as we have carried the
+proofs so far. Again, even if the functions are unknown upfront, it
+does not seem possible to implement an always-terminating procedure
+that would automatically decide whether they are equal or not.
+
+<div class="paragraph"> </div>
+
+The above said does not mean that all possible propositions should be implemented as instances of <span class="inlinecode"><span class="id" title="keyword">Prop</span></span>, making their clients to always construct their proofs, when it is necessary, since, fortunately, some propositions are <i>decidable</i>, so it is possible to construct a decision procedure for them. A good example of such proposition is a predicate, which ensures that a number <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span> is prime. Of course, in Coq one can easily encode primality of a natural number by means of the following inductive predicate, which ensures that <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span> is prime if it is <span class="inlinecode">1</span> or has no other natural divisors but <span class="inlinecode">1</span> and <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span> itself.
+
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="BoolReflect.isPrime"><span class="id" title="definition">isPrime</span></a> <span class="id" title="var">n</span> : <span class="id" title="keyword">Prop</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">n1</span> <span class="id" title="var">n2</span>, <a class="idref" href="PnP.BoolReflect.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="PnP.BoolReflect.html#n1"><span class="id" title="variable">n1</span></a> <span class="id" title="notation">×</span> <a class="idref" href="PnP.BoolReflect.html#n2"><span class="id" title="variable">n2</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#n1"><span class="id" title="variable">n1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> 1 <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">∧</span></a> <a class="idref" href="PnP.BoolReflect.html#n2"><span class="id" title="variable">n2</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="PnP.BoolReflect.html#n"><span class="id" title="variable">n</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">∨</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#n1"><span class="id" title="variable">n1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="PnP.BoolReflect.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">∧</span></a> <a class="idref" href="PnP.BoolReflect.html#n2"><span class="id" title="variable">n2</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> 1<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+Such definition, although correct, is quite inconvenient to use, as it
+does not provide a direct way to <i>check</i> whether some particular
+number (e.g., 239) is prime or not. Instead, it requires one to
+construct a proof of primality for <i>each</i> particular case using the
+constructors (or the contradiction, which would imply that the number
+is not prime). As it's well known, there is a terminating procedure to
+compute whether the number is prime or not by means of <i>enumerating</i>
+all potential divisors of <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span> from <span class="inlinecode">1</span> to the square root of <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span>. Such
+procedure is actually implemented in the Ssreflect's <span class="inlinecode"><span class="id" title="library">prime</span></span>
+ module and proved correct with respect to the
+definition similar to the one above, so now one can test
+the numbers by equality by simply <i>executing</i> the appropriate function
+and getting a boolean answer:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Eval</span> <span class="id" title="tactic">compute</span> <span class="id" title="tactic">in</span> <span class="id" title="definition">prime</span> 239.<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+Therefore, we can summarize that the <i>decidability</i> is what draws the
+line between propositions encoded by means of Coq's <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> datatypes
+and procedures, returning a <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span> result. <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> provides a way to
+encode a <i>larger</i> class of logical statements, in particular, thanks
+to the fact that it allows one to use quantifiers and, therefore,
+encode higher-order propositions. The price to pay for the
+expressivity is the necessity to explicitly construct the proofs of
+the encoded statements, which might lead to series of tedious and
+repetitive scripts. <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span>-returning functions, when implemented in
+Coq, are decidable by construction (as Coq enforces termination), and,
+therefore, provide a way to compute the propositions they
+implement. Of course, in order to be reduced to <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a></span> or <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a></span>, all
+quantifiers should be removed by means of instantiated the
+corresponding bound variables, after which the computation becomes
+possible.
+
+<div class="paragraph"> </div>
+
+For instance, while the expression <span class="inlinecode">(<span class="id" title="library">prime</span></span> <span class="inlinecode">239)</span> <span class="inlinecode">||</span> <span class="inlinecode">(<span class="id" title="library">prime</span></span> <span class="inlinecode">42)</span> can be
+evaluated to <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a></span> right away, whereas the expression
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><span class="id" title="keyword">∀</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a>, (<span class="id" title="library">prime</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a>) || <span class="id" title="library">prime</span> (<a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> + 1)
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+is not even well-typed. The reason for this is that polymorphic
+<span class="inlinecode"><span class="id" title="keyword">∀</span></span>-quantification in Coq does not admit <i>values</i> to come after
+the comma (so the dependent function type ""
+is malformed), similarly to how one cannot write a <i>type</i> <span class="inlinecode"><span class="id" title="var">Int</span></span> <span class="inlinecode">→</span> <span class="inlinecode">3</span>
+in Haskell, as it does not make sense. This
+expression can be, however, <i>coerced</i> into <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> by means of
+comparing the boolean expression with <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a></span> using propositional
+equality
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><span class="id" title="keyword">∀</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a>, ((<span class="id" title="library">prime</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a>) || <span class="id" title="library">prime</span> (<a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> + 1) = <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a>)
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+which makes the whole expression to be of type <span class="inlinecode"><span class="id" title="keyword">Prop</span></span>. This last
+example brings us to the insight that the <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span>-returning functions
+(i.e., decidable predicates) can be naturally <i>injected</i>
+ into propositions of sort <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> by simply
+comparing their result with <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a></span> via propositional equality, defined
+in Chapter. This is what is done by Ssreflect
+automatically using the implicit
+<i>coercion</i>, imported by the <span class="inlinecode"><span class="id" title="library">ssrbool</span></span> module:
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><span class="id" title="keyword">Coercion</span> <span class="id" title="var">is_true</span> (<a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.b"><span class="id" title="variable">b</span></a>: <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>) := <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.b"><span class="id" title="variable">b</span></a> = <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+This coercion can be seen as an implicit type conversion, familiar
+from the languages like Scala or Haskell, 
+and it inserted by Coq automatically
+every time it expects to see a proposition of sort <span class="inlinecode"><span class="id" title="keyword">Prop</span></span>, but instead
+encounters a boolean value. Let us consider the following goal as an
+example:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Goal</span> <a name="BoolReflect.Unnamed_thm1"><span class="id" title="definition">prime</span></a> <a name="BoolReflect.Unnamed_thm1"><span class="id" title="definition">(16</span></a> <a name="BoolReflect.Unnamed_thm1"><span class="id" title="definition">+</span></a> <a name="BoolReflect.Unnamed_thm1"><span class="id" title="definition">14)</span></a> <a name="BoolReflect.Unnamed_thm1"><span class="id" title="definition">→</span></a> <a name="BoolReflect.Unnamed_thm1"><span class="id" title="definition">False</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>. <span class="id" title="var">done</span>. <span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+As we can see, the proof is rather short, and, in fact, done by
+Coq/Ssreflect fully automatically. In fact, the system first
+<i>computes</i> the value of <span class="inlinecode"><span class="id" title="library">prime</span></span> <span class="inlinecode">(16</span> <span class="inlinecode">+</span> <span class="inlinecode">14)</span>, which is, obviously
+<span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a></span>. Then the boolean value <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a></span> is coerced into the
+propositional equality <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a></span> <span class="inlinecode">=</span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a></span>, as previously described. The
+equality is then automatically discriminated (), which allows the system to infer the
+falsehood, completing the proof.
+
+<div class="paragraph"> </div>
+
+This example and the previous discussion should convey the idea that
+<i>decidable propositions should be implemented as computable functions
+returning a boolean result</i>. This simple design pattern makes it
+possible to take full advantage of the computational power of Coq as a
+programming language and prove decidable properties automatically,
+rather than by means of imposing a burden of constructing an explicit
+proof. We have just seen how a boolean result can be easily injected
+back to the world of propositions. This computational approach to
+proofs is what has been taken by Ssreflect to the extreme, making the
+proofs about common mathematical constructions to be very short, as
+most of the proof obligations simply <i>do not appear</i>, as the system is
+possible to reduce them by means of performing the computations on the
+fly. Even though, as discussed, some propositions can be only encoded
+as elements of <span class="inlinecode"><span class="id" title="keyword">Prop</span></span>, our general advice is to rely on the
+computations whenever it is possible.
+
+<div class="paragraph"> </div>
+
+In the following subsections we will elaborate on some additional
+specifications and proof patterns, which are enabled by using boolean
+values instead of full-fledged propositions from <span class="inlinecode"><span class="id" title="keyword">Prop</span></span>.
+
+<div class="paragraph"> </div>
+
+<a name="lab50"></a><h2 class="section">Using conditionals in predicates</h2>
+
+
+<div class="paragraph"> </div>
+
+The ternary conditional operator <span class="inlinecode"><span class="id" title="keyword">if</span>-<span class="id" title="keyword">then</span>-<span class="id" title="keyword">else</span></span> is something that
+programmers use on a regular basis. However, when it comes to the
+specifications in the form of Coq's standard propositions it turns out
+one cannot simply employ the <span class="inlinecode"><span class="id" title="keyword">if</span>-<span class="id" title="keyword">then</span>-<span class="id" title="keyword">else</span></span> connective in them, as it
+expects its conditional argument to be of type <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span>. This
+restriction is, again, a consequence of the fact that the result of
+<span class="inlinecode"><span class="id" title="keyword">if</span>-<span class="id" title="keyword">then</span>-<span class="id" title="keyword">else</span></span> expression should be computable, which conflicts with
+the fact that not every proposition is decidable and, hence, there is
+no sound way overload the conditional operator, so it would rely on
+the existence of the proof of its conditional (or its negation).
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><span class="id" title="keyword">Definition</span> <span class="id" title="var">prime_spec_bad</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> <a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a> : <span class="id" title="keyword">Prop</span> := <a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a> = (<span class="id" title="keyword">if</span> <a class="idref" href="PnP.BoolReflect.html#BoolReflect.isPrime"><span class="id" title="definition">isPrime</span></a> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> <span class="id" title="keyword">then</span> 1 <span class="id" title="keyword">else</span> 2).<br/>
+<br/>
+<span class="id" title="var">Error</span>: <span class="id" title="var">In</span> <span class="id" title="var">environment</span><br/>
+<a class="idref" href="PnP.FunProg.html#m"><span class="id" title="variable">m</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a><br/>
+<a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a><br/>
+<span class="id" title="var">The</span> <span class="id" title="var">term</span> "isPrime n" <span class="id" title="var">has</span> <span class="id" title="keyword">type</span> "Prop" <span class="id" title="var">while</span> <span class="id" title="var">it</span> <span class="id" title="keyword">is</span> <span class="id" title="var">expected</span> <span class="id" title="var">to</span> <span class="id" title="var">have</span> <span class="id" title="keyword">type</span> "bool".
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+Fortunately, the computable predicates are free from this problem, so
+on can freely use them in the conditionals:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="BoolReflect.prime_spec"><span class="id" title="definition">prime_spec</span></a> <span class="id" title="var">n</span> <span class="id" title="var">m</span> : <span class="id" title="keyword">Prop</span> := <a class="idref" href="PnP.BoolReflect.html#m"><span class="id" title="variable">m</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">(</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#00a1a5b58aac8f1e3f1abff064a39f9d"><span class="id" title="notation">if</span></a> <span class="id" title="definition">prime</span> <a class="idref" href="PnP.BoolReflect.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#00a1a5b58aac8f1e3f1abff064a39f9d"><span class="id" title="notation">then</span></a> 1 <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#00a1a5b58aac8f1e3f1abff064a39f9d"><span class="id" title="notation">else</span></a> 2<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<a name="lab51"></a><h2 class="section">Case analysing on a boolean assumption</h2>
+
+
+<div class="paragraph"> </div>
+
+Another advantage of the boolean predicates is that they automatically
+come with a natural case analysis principle: reasoning about an
+outcome of a particular predicate, one can always consider two
+possibilities: when it returned <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a></span> or <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a></span>.<span class="inlinecode"><span class="id" title="lemma">leqP</span></span> This makes it particularly pleasant to reason about the
+programs and specifications that use conditionals, which is
+demonstrated by the following example.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="BoolReflect.discr_prime"><span class="id" title="definition">discr_prime</span></a> <span class="id" title="var">n</span> := <span class="id" title="notation">(</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#00a1a5b58aac8f1e3f1abff064a39f9d"><span class="id" title="notation">if</span></a> <span class="id" title="definition">prime</span> <a class="idref" href="PnP.BoolReflect.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#00a1a5b58aac8f1e3f1abff064a39f9d"><span class="id" title="notation">then</span></a> 0 <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#00a1a5b58aac8f1e3f1abff064a39f9d"><span class="id" title="notation">else</span></a> 1<span class="id" title="notation">)</span> <span class="id" title="notation">+</span> 1.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+Let us now prove that the definition <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.prime_spec"><span class="id" title="definition">prime_spec</span></a></span> gives a precise
+specification of the function <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.discr_prime"><span class="id" title="definition">discr_prime</span></a></span>:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.discr_prime_spec"><span class="id" title="lemma">discr_prime_spec</span></a> : <span class="id" title="keyword">∀</span> <span class="id" title="var">n</span>, <a class="idref" href="PnP.BoolReflect.html#BoolReflect.prime_spec"><span class="id" title="definition">prime_spec</span></a> <a class="idref" href="PnP.BoolReflect.html#n"><span class="id" title="variable">n</span></a> (<a class="idref" href="PnP.BoolReflect.html#BoolReflect.discr_prime"><span class="id" title="definition">discr_prime</span></a> <a class="idref" href="PnP.BoolReflect.html#n"><span class="id" title="variable">n</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">move</span>⇒<span class="id" title="var">n</span>. <span class="id" title="tactic">rewrite</span> /<a class="idref" href="PnP.BoolReflect.html#BoolReflect.prime_spec"><span class="id" title="definition">prime_spec</span></a> /<a class="idref" href="PnP.BoolReflect.html#BoolReflect.discr_prime"><span class="id" title="definition">discr_prime</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode">&nbsp;&nbsp;<a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a><br/>
+&nbsp;&nbsp;============================<br/>
+&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">if</span> <span class="id" title="library">prime</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> <span class="id" title="keyword">then</span> 0 <span class="id" title="keyword">else</span> 1) + 1 = (<span class="id" title="keyword">if</span> <span class="id" title="library">prime</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> <span class="id" title="keyword">then</span> 1 <span class="id" title="keyword">else</span> 2)
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+The proof of the specification is totally in the spirit of what one
+would have done when proving it manually: we just case-analyse on the
+value of <span class="inlinecode"><span class="id" title="library">prime</span></span> <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span>, which is either <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a></span> or <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a></span>. Similarly to
+the way the rewritings are handled by means of unification, in both
+cases the system substitutes <span class="inlinecode"><span class="id" title="library">prime</span></span> <span class="inlinecode"><a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a></span> with its boolean value in the
+specification as well. The evaluation completes the proof.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="tactic">by</span> <span class="id" title="tactic">case</span>: (<span class="id" title="definition">prime</span> <span class="id" title="var">n</span>).<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+Another common use case of boolean predicates comes from the
+possibility to perform a case analysis on the boolean <i>computable
+equality</i>, which can be employed in the proof proceeding by an
+argument "let us assume <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a></span> to be equal to <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.b"><span class="id" title="variable">b</span></a></span> (or not)". As already
+hinted by the example with the function equality earlier in this
+section, the computable equality is not always possible to
+implement. Fortunately, it can be implemented for a large class of
+datatypes, such as booleans, natural numbers, lists and sets (of
+elements with computable equality), and it was implemented in
+Ssreflect, so one can take an advantage of it in the
+proofs.
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab52"></a><h1 class="section"></h1>
+
+
+
+<div class="paragraph"> </div>
+
+Being able to state all the properties of interest in a way that they
+are decidable is a true blessing. However, even though encoding
+everything in terms of <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span>-returning functions and connectives
+comes with the obvious benefits, reasoning in terms of <span class="inlinecode"><span class="id" title="keyword">Prop</span></span>s might
+be more convenient when the information of the structure of the proofs
+matters. For instance, let us consider the following situation:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Variables</span> <a name="BoolReflect.do_check1"><span class="id" title="axiom">do_check1</span></a> <a name="BoolReflect.do_check2"><span class="id" title="axiom">do_check2</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>.<br/>
+<span class="id" title="keyword">Hypothesis</span> <a name="BoolReflect.H"><span class="id" title="axiom">H</span></a>: <span class="id" title="keyword">∀</span> <span class="id" title="var">n</span>, <a class="idref" href="PnP.BoolReflect.html#BoolReflect.do_check2"><span class="id" title="axiom">do_check2</span></a> <a class="idref" href="PnP.BoolReflect.html#n"><span class="id" title="variable">n</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <span class="id" title="definition">prime</span> <a class="idref" href="PnP.BoolReflect.html#n"><span class="id" title="variable">n</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.check_prime"><span class="id" title="lemma">check_prime</span></a> <span class="id" title="var">n</span> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#9ddeac0ab66152bd1d64bedb507a795e"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#BoolReflect.do_check1"><span class="id" title="axiom">do_check1</span></a> <a class="idref" href="PnP.BoolReflect.html#n"><span class="id" title="variable">n</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#9ddeac0ab66152bd1d64bedb507a795e"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#9ddeac0ab66152bd1d64bedb507a795e"><span class="id" title="notation">&amp;&amp;</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#9ddeac0ab66152bd1d64bedb507a795e"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#BoolReflect.do_check2"><span class="id" title="axiom">do_check2</span></a> <a class="idref" href="PnP.BoolReflect.html#n"><span class="id" title="variable">n</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#9ddeac0ab66152bd1d64bedb507a795e"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <span class="id" title="definition">prime</span> <a class="idref" href="PnP.BoolReflect.html#n"><span class="id" title="variable">n</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+The lemma <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.check_prime"><span class="id" title="lemma">check_prime</span></a></span> employs the boolean conjunction <span class="inlinecode">&amp;&amp;</span> from the
+<span class="inlinecode"><span class="id" title="library">ssrbool</span></span> module in its assumption, so we know that its result is some
+boolean value. However simply case-analysing on its component does not
+bring any results. What we want indeed is a way to <i>decompose</i> the
+boolean conjunction into the components and then use the hypothesis
+<span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.H"><span class="id" title="axiom">H</span></a></span>. This is what could be accomplished easily, had we employed the
+<i>propositional conjunction</i> <span class="inlinecode">∧</span> instead, as it comes with a
+case-analysis principle.
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+  
+</div>
+<div class="code">
+<span class="id" title="keyword">Abort</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+This is why we need a mechanism to conveniently switch between two
+possible representation. Ssreflect solves this problem by employing
+the familiar rewriting machinery () and introducing the inductive predicate
+family <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.Inner.reflect"><span class="id" title="inductive">reflect</span></a></span>, which connects propositions and booleans:
+
+<div class="paragraph"> </div>
+
+
+
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <a name="BoolReflect.Inner.reflect"><span class="id" title="inductive">reflect</span></a> (<span class="id" title="var">P</span> : <span class="id" title="keyword">Prop</span>) : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <span class="id" title="keyword">Set</span> :=<br/>
+&nbsp;&nbsp;| <a name="BoolReflect.Inner.ReflectT"><span class="id" title="constructor">ReflectT</span></a>  <span class="id" title="keyword">of</span>   <a class="idref" href="PnP.BoolReflect.html#P"><span class="id" title="variable">P</span></a> : <a class="idref" href="PnP.BoolReflect.html#reflect"><span class="id" title="inductive">reflect</span></a> <a class="idref" href="PnP.BoolReflect.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a><br/>
+&nbsp;&nbsp;| <a name="BoolReflect.Inner.ReflectF"><span class="id" title="constructor">ReflectF</span></a> <span class="id" title="keyword">of</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a> <a class="idref" href="PnP.BoolReflect.html#P"><span class="id" title="variable">P</span></a> : <a class="idref" href="PnP.BoolReflect.html#reflect"><span class="id" title="inductive">reflect</span></a> <a class="idref" href="PnP.BoolReflect.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+Similarly to the custom rewriting rules, the <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.Inner.reflect"><span class="id" title="inductive">reflect</span></a></span> predicate is
+nothing but a convenient way to encode a "truth" table with respect to
+the predicate <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span>, which is <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.Inner.reflect"><span class="id" title="inductive">reflect</span></a></span>'s only parameter. In other
+words, the propositions <span class="inlinecode">(<a class="idref" href="PnP.BoolReflect.html#BoolReflect.Inner.reflect"><span class="id" title="inductive">reflect</span></a></span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.b"><span class="id" title="variable">b</span></a>)</span> ensures that <span class="inlinecode">(<span class="id" title="var">is_true</span></span> <span class="inlinecode"><a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.b"><span class="id" title="variable">b</span></a>)</span> and
+<span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> are logically equivalent and can be replaced one by another. For
+instance, the following rewriting lemmas  can
+be proved for the simple instances of <span class="inlinecode"><span class="id" title="keyword">Prop</span></span>.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.trueP"><span class="id" title="lemma">trueP</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssrbool.html#reflect"><span class="id" title="abbreviation">reflect</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#True"><span class="id" title="inductive">True</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>. <span class="id" title="tactic">by</span> <span class="id" title="tactic">constructor</span>. <span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.falseP"><span class="id" title="lemma">falseP</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssrbool.html#reflect"><span class="id" title="abbreviation">reflect</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#False"><span class="id" title="inductive">False</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>. <span class="id" title="tactic">by</span> <span class="id" title="tactic">constructor</span>. <span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+The proofs with boolean truth and falsehood can be then completed by
+case analysis, as with any other rewriting rules:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Goal</span> <a name="BoolReflect.Unnamed_thm2"><span class="id" title="definition">false</span></a> <a name="BoolReflect.Unnamed_thm2"><span class="id" title="definition">→</span></a> <a name="BoolReflect.Unnamed_thm2"><span class="id" title="definition">False</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>. <span class="id" title="tactic">by</span> <span class="id" title="tactic">case</span>:<a class="idref" href="PnP.BoolReflect.html#BoolReflect.falseP"><span class="id" title="lemma">falseP</span></a>. <span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<a name="lab53"></a><h2 class="section">Reflecting logical connectives</h2>
+
+
+<div class="paragraph"> </div>
+
+The true power of the <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.Inner.reflect"><span class="id" title="inductive">reflect</span></a></span> predicate, though, is that it might be
+put to work with arbitrary logical connectives and user-defined
+predicates, therefore delivering the rewriting principles, allowing
+one to switch between <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span> and <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> (in the decidable case) by
+means of rewriting lemmas. Ssreflect comes with a number of such
+lemmas, so let us consider one of them, <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.andP"><span class="id" title="lemma">andP</span></a></span>.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.andP"><span class="id" title="lemma">andP</span></a> (<span class="id" title="var">b1</span> <span class="id" title="var">b2</span> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>) : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssrbool.html#reflect"><span class="id" title="abbreviation">reflect</span></a> (<a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">∧</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a>) (<a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#9ddeac0ab66152bd1d64bedb507a795e"><span class="id" title="notation">&amp;&amp;</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a>).<br/>
+<span class="id" title="keyword">Proof</span>. <span class="id" title="tactic">by</span> <span class="id" title="tactic">case</span> <span class="id" title="var">b1</span>; <span class="id" title="tactic">case</span> <span class="id" title="var">b2</span>; <span class="id" title="tactic">constructor</span>⇒ //; <span class="id" title="tactic">case</span>. <span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+Notice that <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.andP"><span class="id" title="lemma">andP</span></a></span> is stated over two boolean variables, <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a></span> and
+<span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a></span>, which, nevertheless, are treated as instances of <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> in the
+conjunction <span class="inlinecode">∧</span>, being implicitly coerced. 
+
+<div class="paragraph"> </div>
+
+We can now put this lemma to work and prove our initial example:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.check_prime"><span class="id" title="lemma">check_prime</span></a> <span class="id" title="var">n</span> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#9ddeac0ab66152bd1d64bedb507a795e"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#BoolReflect.do_check1"><span class="id" title="axiom">do_check1</span></a> <a class="idref" href="PnP.BoolReflect.html#n"><span class="id" title="variable">n</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#9ddeac0ab66152bd1d64bedb507a795e"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#9ddeac0ab66152bd1d64bedb507a795e"><span class="id" title="notation">&amp;&amp;</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#9ddeac0ab66152bd1d64bedb507a795e"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#BoolReflect.do_check2"><span class="id" title="axiom">do_check2</span></a> <a class="idref" href="PnP.BoolReflect.html#n"><span class="id" title="variable">n</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#9ddeac0ab66152bd1d64bedb507a795e"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <span class="id" title="definition">prime</span> <a class="idref" href="PnP.BoolReflect.html#n"><span class="id" title="variable">n</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">case</span>: <a class="idref" href="PnP.BoolReflect.html#BoolReflect.andP"><span class="id" title="lemma">andP</span></a>=&gt;//.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<br/>
+<span class="inlinecode">&nbsp;&nbsp;<a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a><br/>
+&nbsp;&nbsp;============================<br/>
+&nbsp;&nbsp;&nbsp;<a class="idref" href="PnP.BoolReflect.html#BoolReflect.do_check1"><span class="id" title="axiom">do_check1</span></a> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> ∧ <a class="idref" href="PnP.BoolReflect.html#BoolReflect.do_check2"><span class="id" title="axiom">do_check2</span></a> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a> → <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a> → <span class="id" title="library">prime</span> <a class="idref" href="PnP.FunProg.html#NatUtilSection.n"><span class="id" title="variable">n</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+Case analysis on the rewriting rule <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.andP"><span class="id" title="lemma">andP</span></a></span> generates two goals, and
+the second one has <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a></span> as an assumption, so it is discharged
+immediately by using . The remaining goal has a
+shape that we can work with, so we conclude the proof by applying the
+hypothesis <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.H"><span class="id" title="axiom">H</span></a></span> declared above.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="tactic">by</span> <span class="id" title="tactic">case</span>⇒<span class="id" title="var">_</span> /<a class="idref" href="PnP.BoolReflect.html#BoolReflect.H"><span class="id" title="axiom">H</span></a>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+Although the example above is a valid usage of the reflected
+propositions, Ssreflect leverages the rewriting with respect to
+boolean predicates even more by defining a number of <i>hint views</i> for
+the rewriting lemmas that make use of the <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.Inner.reflect"><span class="id" title="inductive">reflect</span></a></span> predicates. This
+allows one to use the rewriting rules (e.g., <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.andP"><span class="id" title="lemma">andP</span></a></span>) in the form of
+<i>views</i> , which can be applied directly to an
+assumption or a goal, as demonstrated by the next definition.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="BoolReflect.andb_orb"><span class="id" title="definition">andb_orb</span></a> <span class="id" title="var">b1</span> <span class="id" title="var">b2</span>: <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#9ddeac0ab66152bd1d64bedb507a795e"><span class="id" title="notation">&amp;&amp;</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#081ff67d3116402bb680e8692aa39185"><span class="id" title="notation">||</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">case</span>/<a class="idref" href="PnP.BoolReflect.html#BoolReflect.andP"><span class="id" title="lemma">andP</span></a>⇒<span class="id" title="var">H1</span> <span class="id" title="var">H2</span>.<br/>
+<span class="id" title="tactic">by</span> <span class="id" title="tactic">apply</span>/<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssrbool.html#orP"><span class="id" title="lemma">orP</span></a>; <span class="id" title="tactic">left</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+The first line of the proof switched the top assumption from the
+boolean conjunction to the propositional one by means of <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.andP"><span class="id" title="lemma">andP</span></a></span> used
+as a view. The second line applied the <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssrbool.html#orP"><span class="id" title="lemma">orP</span></a></span> view, doing the similar
+switch in the goal, completing the proof by using a constructor of the
+propositional disjunction.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <a class="idref" href="PnP.BoolReflect.html#BoolReflect.andb_orb"><span class="id" title="definition">andb_orb</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+Let us take a brief look to the obtained proof term for <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.andb_orb"><span class="id" title="definition">andb_orb</span></a></span>.
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.andb_orb"><span class="id" title="definition">andb_orb</span></a> = <br/>
+<span class="id" title="keyword">fun</span> (<a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>) (<span class="id" title="keyword">goal</span> : <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> &amp;&amp; <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a>) ⇒<br/>
+(<span class="id" title="keyword">fun</span> <span class="id" title="var">F</span> : <span class="id" title="keyword">∀</span> (<a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a> : <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a>) (<a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.b"><span class="id" title="variable">b</span></a> : <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> : <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> ∧ <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a> ⇒ <span class="id" title="var">is_true</span> (<a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> || <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a>)) (<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#conj"><span class="id" title="constructor">conj</span></a> <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a> <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.b"><span class="id" title="variable">b</span></a>) ⇒<br/>
+&nbsp;<span class="id" title="keyword">match</span><br/>
+&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssrbool.html#elimTF"><span class="id" title="lemma">elimTF</span></a> (<a class="idref" href="PnP.BoolReflect.html#BoolReflect.andP"><span class="id" title="lemma">andP</span></a> <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a>) <span class="id" title="keyword">goal</span> <span class="id" title="keyword">as</span> <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a> <span class="id" title="keyword">return</span> ((<span class="id" title="keyword">fun</span> <span class="id" title="var">_</span> : <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> ∧ <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a> ⇒ <span class="id" title="var">is_true</span> (<a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> || <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a>)) <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.a"><span class="id" title="variable">a</span></a>)<br/>
+&nbsp;<span class="id" title="keyword">with</span><br/>
+&nbsp;| <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#conj"><span class="id" title="constructor">conj</span></a> <a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="var">x0</span> ⇒ <span class="id" title="var">F</span> <a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="var">x0</span><br/>
+&nbsp;<span class="id" title="keyword">end</span>)<br/>
+&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> (<span class="id" title="var">H1</span> : <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a>) (<span class="id" title="var">_</span> : <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;(<span class="id" title="keyword">fun</span> <span class="id" title="var">F</span> : <span class="id" title="keyword">if</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a> <span class="id" title="keyword">then</span> <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> ∨ <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a> <span class="id" title="keyword">else</span> ~ (<a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> ∨ <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a>) ⇒<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">introTF</span> (<a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.c"><span class="id" title="variable">c</span></a>:=<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a>) <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssrbool.html#orP"><span class="id" title="lemma">orP</span></a> <span class="id" title="var">F</span>) (<span class="id" title="var">or_introl</span> <span class="id" title="var">H1</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="keyword">∀</span> <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>, <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> &amp;&amp; <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a> → <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> || <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+As we can see, the calls to the rewriting lemmas <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.andP"><span class="id" title="lemma">andP</span></a></span> and <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssrbool.html#orP"><span class="id" title="lemma">orP</span></a></span> were
+implicitly "wrapped" into the call of hints <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssrbool.html#elimTF"><span class="id" title="lemma">elimTF</span></a></span> and <span class="inlinecode"><span class="id" title="var">introTF</span></span>,
+correspondingly. Defined via the conditional operator, both these view
+hints allowed us to avoid the second redundant goal, which we would be
+be forced to deal with, had we simply gone with case analysis on
+<span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.andP"><span class="id" title="lemma">andP</span></a></span> and <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssrbool.html#orP"><span class="id" title="lemma">orP</span></a></span> as rewriting rules.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssrbool.html#elimTF"><span class="id" title="lemma">elimTF</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssrbool.html#elimTF"><span class="id" title="lemma">elimTF</span></a><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="keyword">∀</span> (<a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> : <span class="id" title="keyword">Prop</span>) (<a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.b"><span class="id" title="variable">b</span></a> <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.c"><span class="id" title="variable">c</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="PnP.BoolReflect.html#BoolReflect.Inner.reflect"><span class="id" title="inductive">reflect</span></a> <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.b"><span class="id" title="variable">b</span></a> → <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.b"><span class="id" title="variable">b</span></a> = <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.c"><span class="id" title="variable">c</span></a> → <span class="id" title="keyword">if</span> <a class="idref" href="PnP.DepRecords.html#DepRecords.PCMExamples.c"><span class="id" title="variable">c</span></a> <span class="id" title="keyword">then</span> <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <span class="id" title="keyword">else</span> ~ <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+Let us define a propositional version of the <i>exclusive or</i>
+ predicate:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="BoolReflect.XOR"><span class="id" title="definition">XOR</span></a> (<span class="id" title="var">P</span> <span class="id" title="var">Q</span>: <span class="id" title="keyword">Prop</span>) := <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">∨</span></a> <a class="idref" href="PnP.BoolReflect.html#Q"><span class="id" title="variable">Q</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">∧</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~(</span></a><a class="idref" href="PnP.BoolReflect.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">∧</span></a> <a class="idref" href="PnP.BoolReflect.html#Q"><span class="id" title="variable">Q</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+
+as well as its boolean version (in a curried form, so it takes just
+one argument and returns a function):
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="BoolReflect.xorb"><span class="id" title="definition">xorb</span></a> <span class="id" title="var">b</span> := <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#00a1a5b58aac8f1e3f1abff064a39f9d"><span class="id" title="notation">if</span></a> <a class="idref" href="PnP.BoolReflect.html#b"><span class="id" title="variable">b</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#00a1a5b58aac8f1e3f1abff064a39f9d"><span class="id" title="notation">then</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#negb"><span class="id" title="definition">negb</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#00a1a5b58aac8f1e3f1abff064a39f9d"><span class="id" title="notation">else</span></a> <span class="id" title="keyword">fun</span> <span class="id" title="var">x</span> ⇒ <a class="idref" href="PnP.BoolReflect.html#x"><span class="id" title="variable">x</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+
+Now, prove the following <i>generalized</i> reflection lemma <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.xorP_gen"><span class="id" title="lemma">xorP_gen</span></a></span> and
+its direct consequence, the usual reflection lemma <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.xorP"><span class="id" title="lemma">xorP</span></a></span>:
+
+<div class="paragraph"> </div>
+
+ Recall that the <i>reflect</i> predicate is just a rewriting rule,
+ so one can perform a case analysis on it.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.xorP_gen"><span class="id" title="lemma">xorP_gen</span></a> (<span class="id" title="var">b1</span> <span class="id" title="var">b2</span> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>)(<span class="id" title="var">P1</span> <span class="id" title="var">P2</span>: <span class="id" title="keyword">Prop</span>): <br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssrbool.html#reflect"><span class="id" title="abbreviation">reflect</span></a> <a class="idref" href="PnP.BoolReflect.html#P1"><span class="id" title="variable">P1</span></a> <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssrbool.html#reflect"><span class="id" title="abbreviation">reflect</span></a> <a class="idref" href="PnP.BoolReflect.html#P2"><span class="id" title="variable">P2</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssrbool.html#reflect"><span class="id" title="abbreviation">reflect</span></a> (<a class="idref" href="PnP.BoolReflect.html#BoolReflect.XOR"><span class="id" title="definition">XOR</span></a> <a class="idref" href="PnP.BoolReflect.html#P1"><span class="id" title="variable">P1</span></a> <a class="idref" href="PnP.BoolReflect.html#P2"><span class="id" title="variable">P2</span></a>) (<a class="idref" href="PnP.BoolReflect.html#BoolReflect.xorb"><span class="id" title="definition">xorb</span></a> <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a>).<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.xorP"><span class="id" title="lemma">xorP</span></a> (<span class="id" title="var">b1</span> <span class="id" title="var">b2</span> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>): <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssrbool.html#reflect"><span class="id" title="abbreviation">reflect</span></a> (<a class="idref" href="PnP.BoolReflect.html#BoolReflect.XOR"><span class="id" title="definition">XOR</span></a> <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a>) (<a class="idref" href="PnP.BoolReflect.html#BoolReflect.xorb"><span class="id" title="definition">xorb</span></a> <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+Let us consider an alternative version of exclusive or, defined by
+means of the predicate <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.XOR'"><span class="id" title="definition">XOR'</span></a></span>:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="BoolReflect.XOR'"><span class="id" title="definition">XOR'</span></a> (<span class="id" title="var">P</span> <span class="id" title="var">Q</span>: <span class="id" title="keyword">Prop</span>) := <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">∧</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a><a class="idref" href="PnP.BoolReflect.html#Q"><span class="id" title="variable">Q</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">∨</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">(</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#63a68285c81db8f9bc456233bb9ed181"><span class="id" title="notation">~</span></a><a class="idref" href="PnP.BoolReflect.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">∧</span></a> <a class="idref" href="PnP.BoolReflect.html#Q"><span class="id" title="variable">Q</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#f031fe1957c4a4a8e217aa46af2b4e25"><span class="id" title="notation">)</span></a>.<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+Prove the following equivalence lemma between to versions of <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.XOR"><span class="id" title="definition">XOR</span></a></span>:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.XORequiv"><span class="id" title="lemma">XORequiv</span></a> <span class="id" title="var">P</span> <span class="id" title="var">Q</span>: <a class="idref" href="PnP.BoolReflect.html#BoolReflect.XOR"><span class="id" title="definition">XOR</span></a> <a class="idref" href="PnP.BoolReflect.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="PnP.BoolReflect.html#Q"><span class="id" title="variable">Q</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">↔</span></a> <a class="idref" href="PnP.BoolReflect.html#BoolReflect.XOR'"><span class="id" title="definition">XOR'</span></a> <a class="idref" href="PnP.BoolReflect.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="PnP.BoolReflect.html#Q"><span class="id" title="variable">Q</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+
+The final step is to use the equivalence we have just proved in order
+to establish an alternative version of the reflective correspondence
+of exclusive disjunction.
+
+<div class="paragraph"> </div>
+
+ Use the <span class="inlinecode"><span class="id" title="keyword">Search</span></span> machinery to look for lemmas that might help
+ to leverage the equivalence between two predicates and make the
+ following proof to be a one-liner.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.xorP'"><span class="id" title="lemma">xorP'</span></a> (<span class="id" title="var">b1</span> <span class="id" title="var">b2</span> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>): <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssrbool.html#reflect"><span class="id" title="abbreviation">reflect</span></a> (<a class="idref" href="PnP.BoolReflect.html#BoolReflect.XOR'"><span class="id" title="definition">XOR'</span></a> <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a>) (<a class="idref" href="PnP.BoolReflect.html#BoolReflect.xorb"><span class="id" title="definition">xorb</span></a> <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+Unsurprisingly, every statement about exclusive or, e.g., its
+commutativity and associativity, is extremely easy to prove when it is
+considered as a boolean function. 
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.xorbC"><span class="id" title="lemma">xorbC</span></a> (<span class="id" title="var">b1</span> <span class="id" title="var">b2</span>: <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>) : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#BoolReflect.xorb"><span class="id" title="definition">xorb</span></a> <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#BoolReflect.xorb"><span class="id" title="definition">xorb</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a> <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">)</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>. <span class="id" title="tactic">by</span> <span class="id" title="tactic">case</span>: <span class="id" title="var">b1</span>; <span class="id" title="tactic">case</span>: <span class="id" title="var">b2</span>. <span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.xorbA"><span class="id" title="lemma">xorbA</span></a> (<span class="id" title="var">b1</span> <span class="id" title="var">b2</span> <span class="id" title="var">b3</span>: <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>) : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#BoolReflect.xorb"><span class="id" title="definition">xorb</span></a> (<a class="idref" href="PnP.BoolReflect.html#BoolReflect.xorb"><span class="id" title="definition">xorb</span></a> <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a>) <a class="idref" href="PnP.BoolReflect.html#b3"><span class="id" title="variable">b3</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">=</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#BoolReflect.xorb"><span class="id" title="definition">xorb</span></a> <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> (<a class="idref" href="PnP.BoolReflect.html#BoolReflect.xorb"><span class="id" title="definition">xorb</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a> <a class="idref" href="PnP.BoolReflect.html#b3"><span class="id" title="variable">b3</span></a>)<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#6cd0f7b28b6092304087c7049437bb1a"><span class="id" title="notation">)</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>. <span class="id" title="tactic">by</span> <span class="id" title="tactic">case</span>: <span class="id" title="var">b1</span>; <span class="id" title="tactic">case</span>: <span class="id" title="var">b2</span>; <span class="id" title="tactic">case</span>: <span class="id" title="var">b3</span>=&gt;//. <span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+It is also not difficult to prove the propositional counterparts of
+the above lemmas for decidable propositions, reflected by them, hence
+the following exercise.
+
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+Prove the following specialized lemmas for decidable propositions
+represented by booleans (without using the <span class="inlinecode"><span class="id" title="tactic">intuition</span></span> tactic):
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.xorCb"><span class="id" title="lemma">xorCb</span></a> (<span class="id" title="var">b1</span> <span class="id" title="var">b2</span>: <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>) : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#BoolReflect.XOR"><span class="id" title="definition">XOR</span></a> <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">↔</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#BoolReflect.XOR"><span class="id" title="definition">XOR</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a> <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.xorAb"><span class="id" title="lemma">xorAb</span></a> (<span class="id" title="var">b1</span> <span class="id" title="var">b2</span> <span class="id" title="var">b3</span>: <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a>) : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#BoolReflect.XOR"><span class="id" title="definition">XOR</span></a> (<a class="idref" href="PnP.BoolReflect.html#BoolReflect.XOR"><span class="id" title="definition">XOR</span></a> <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a>) <a class="idref" href="PnP.BoolReflect.html#b3"><span class="id" title="variable">b3</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">↔</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#BoolReflect.XOR"><span class="id" title="definition">XOR</span></a> <a class="idref" href="PnP.BoolReflect.html#b1"><span class="id" title="variable">b1</span></a> (<a class="idref" href="PnP.BoolReflect.html#BoolReflect.XOR"><span class="id" title="definition">XOR</span></a> <a class="idref" href="PnP.BoolReflect.html#b2"><span class="id" title="variable">b2</span></a> <a class="idref" href="PnP.BoolReflect.html#b3"><span class="id" title="variable">b3</span></a>)<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#4bfb4f2d0721ba668e3a802ab1b745a1"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+ In the proof of <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.xorAb"><span class="id" title="lemma">xorAb</span></a></span> the generalized reflection lemma
+ <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.xorP_gen"><span class="id" title="lemma">xorP_gen</span></a></span> might come in handy.
+
+<div class="paragraph"> </div>
+
+ A redundant assumption <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.H"><span class="id" title="axiom">H</span></a></span> in the context can be erased by
+ typing <span class="inlinecode"><span class="id" title="tactic">clear</span></span> <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.H"><span class="id" title="axiom">H</span></a></span>  or <span class="inlinecode"><span class="id" title="tactic">move</span></span> <span class="inlinecode">⇒</span> <span class="inlinecode">{<a class="idref" href="PnP.BoolReflect.html#BoolReflect.H"><span class="id" title="axiom">H</span></a>}</span>. The latter form can
+ be combined with any bookkeeping sequence, not only with <span class="inlinecode"><span class="id" title="tactic">move</span></span>
+ tactics.
+
+<div class="paragraph"> </div>
+
+ The Coq's embedded tactic <span class="inlinecode"><span class="id" title="tactic">intuition</span></span> can be helpful for
+ automatically solving goals in propositional logic.
+
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+<a name="lab54"></a><h2 class="section">Reflecting decidable equalities</h2>
+
+
+
+<div class="paragraph"> </div>
+
+Logical connectives are not the only class of inductive predicates
+that is worth building a <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.Inner.reflect"><span class="id" title="inductive">reflect</span></a></span>-based rewriting principle for.
+Another useful class of decidable propositions, which are often
+reflected, are equalities.
+
+<div class="paragraph"> </div>
+
+Postponing the description of a generic mechanism for declaring
+polymorphic decidable equalities until ,
+let us see how switching between decidable <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#bool"><span class="id" title="inductive">bool</span></a></span>-returning equality
+<span class="inlinecode">==</span> (defined in the Ssreflect's module <span class="inlinecode"><span class="id" title="library">eqtype</span></span>) and
+the familiar propositional equality can be beneficial.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="BoolReflect.foo"><span class="id" title="definition">foo</span></a> (<span class="id" title="var">x</span> <span class="id" title="var">y</span>: <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a>) := <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#00a1a5b58aac8f1e3f1abff064a39f9d"><span class="id" title="notation">if</span></a> <a class="idref" href="PnP.BoolReflect.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">==</span> <a class="idref" href="PnP.BoolReflect.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#00a1a5b58aac8f1e3f1abff064a39f9d"><span class="id" title="notation">then</span></a> 1 <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.ssr.ssreflect.html#00a1a5b58aac8f1e3f1abff064a39f9d"><span class="id" title="notation">else</span></a> 0.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+The function <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.foo"><span class="id" title="definition">foo</span></a></span> naturally uses the natural numbers' boolean
+equality <span class="inlinecode">==</span> in its body, as it is the only one that can be used in
+the conditional operator. The next goal, though, assumes the
+propositional equality of <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a></span> and <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#y"><span class="id" title="variable">y</span></a></span>, which are passed to <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.foo"><span class="id" title="definition">foo</span></a></span> as
+arguments.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Goal</span> <a name="BoolReflect.Unnamed_thm3"><span class="id" title="definition">∀</span></a> <a name="BoolReflect.Unnamed_thm3"><span class="id" title="definition">x</span></a> <a name="BoolReflect.Unnamed_thm3"><span class="id" title="definition">y</span></a><a name="BoolReflect.Unnamed_thm3"><span class="id" title="definition">,</span></a> <a name="BoolReflect.Unnamed_thm3"><span class="id" title="definition">x</span></a> <a name="BoolReflect.Unnamed_thm3"><span class="id" title="definition">=</span></a> <a name="BoolReflect.Unnamed_thm3"><span class="id" title="definition">y</span></a> <a name="BoolReflect.Unnamed_thm3"><span class="id" title="definition">→</span></a> <a name="BoolReflect.Unnamed_thm3"><span class="id" title="definition">foo</span></a> <a name="BoolReflect.Unnamed_thm3"><span class="id" title="definition">x</span></a> <a name="BoolReflect.Unnamed_thm3"><span class="id" title="definition">y</span></a> <a name="BoolReflect.Unnamed_thm3"><span class="id" title="definition">=</span></a> <a name="BoolReflect.Unnamed_thm3"><span class="id" title="definition">1</span></a>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">move</span>⇒<span class="id" title="var">x</span> <span class="id" title="var">y</span>; <span class="id" title="tactic">rewrite</span> /<a class="idref" href="PnP.BoolReflect.html#BoolReflect.foo"><span class="id" title="definition">foo</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<br/>
+<span class="inlinecode">&nbsp;&nbsp;<a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="PnP.LogicPrimer.html#y"><span class="id" title="variable">y</span></a> : <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#nat"><span class="id" title="inductive">nat</span></a><br/>
+&nbsp;&nbsp;============================<br/>
+&nbsp;&nbsp;&nbsp;<a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a> = <a class="idref" href="PnP.LogicPrimer.html#y"><span class="id" title="variable">y</span></a> → (<span class="id" title="keyword">if</span> <a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a> == <a class="idref" href="PnP.LogicPrimer.html#y"><span class="id" title="variable">y</span></a> <span class="id" title="keyword">then</span> 1 <span class="id" title="keyword">else</span> 0) = 1
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+The rewriting rule/view lemma <span class="inlinecode"><span class="id" title="lemma">eqP</span></span>, imported from <span class="inlinecode"><span class="id" title="library">eqtype</span></span> allows us
+to switch from propositional to boolean equality, which
+makes the assumption to be <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a></span> <span class="inlinecode">==</span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#y"><span class="id" title="variable">y</span></a></span>. Next, we combine the implicit
+fact that <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a></span> <span class="inlinecode">==</span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#y"><span class="id" title="variable">y</span></a></span> in the assumption of a proposition is in fact <span class="inlinecode">(<a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a></span>
+<span class="inlinecode">==</span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#y"><span class="id" title="variable">y</span></a>)</span> <span class="inlinecode">=</span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a></span> to perform in-place rewriting (see
+) by means of the 
+tactical, so the rest of the proof is simply by computation.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="tactic">by</span> <span class="id" title="tactic">move</span>/<span class="id" title="lemma">eqP</span>=&gt;-&gt;.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+
+
+<div class="paragraph"> </div>
+
+Sometimes, the statement ``there exists unique  and , such that
+ holds'' is mistakingly formalized as . In fact, the latter assertion is much weaker than the
+previous one. The goal of this exercise is to demonstrate this
+formally.
+
+<div class="paragraph"> </div>
+
+First, prove the following lemma, stating that the first assertion can
+be weakened from the second one.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.ExistsUnique1"><span class="id" title="lemma">ExistsUnique1</span></a> <span class="id" title="var">A</span> (<span class="id" title="var">P</span> : <a class="idref" href="PnP.BoolReflect.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="PnP.BoolReflect.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <span class="id" title="keyword">Prop</span>): <br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">∃</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">!</span></a><span class="id" title="var">x</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">,</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">∃</span></a> <span class="id" title="var">y</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">,</span></a> <a class="idref" href="PnP.BoolReflect.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="PnP.BoolReflect.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="PnP.BoolReflect.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">∃</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">!</span></a><span class="id" title="var">x</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">,</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">∃</span></a> <span class="id" title="var">y</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">,</span></a> <a class="idref" href="PnP.BoolReflect.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="PnP.BoolReflect.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="PnP.BoolReflect.html#x"><span class="id" title="variable">x</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">∃</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">!</span></a><span class="id" title="var">x</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">,</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">∃</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">!</span></a><span class="id" title="var">y</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">,</span></a> <a class="idref" href="PnP.BoolReflect.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="PnP.BoolReflect.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="PnP.BoolReflect.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+The notation <span class="inlinecode"><span class="id" title="tactic">∃</span></span> <span class="inlinecode">!</span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a>,</span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a></span> is an abbreviation for the sigma-type,
+whose second component is the higher-order predicate <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#unique"><span class="id" title="definition">unique</span></a></span>, defined
+as follows:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#unique"><span class="id" title="definition">unique</span></a>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<br/>
+<span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#unique"><span class="id" title="definition">unique</span></a> = <br/>
+<span class="id" title="keyword">fun</span> (<a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> : <span class="id" title="keyword">Type</span>) (<a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> : <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> → <span class="id" title="keyword">Prop</span>) (<a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a> : <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a>) ⇒<br/>
+<a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a> ∧ (<span class="id" title="keyword">∀</span> <a class="idref" href="PnP.HTT.html#x'"><span class="id" title="variable">x'</span></a> : <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a>, <a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a> <a class="idref" href="PnP.HTT.html#x'"><span class="id" title="variable">x'</span></a> → <a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a> = <a class="idref" href="PnP.HTT.html#x'"><span class="id" title="variable">x'</span></a>)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="keyword">∀</span> <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> : <span class="id" title="keyword">Type</span>, (<a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> → <span class="id" title="keyword">Prop</span>) → <a class="idref" href="PnP.SsrStyle.html#SsrStyle.A"><span class="id" title="axiom">A</span></a> → <span class="id" title="keyword">Prop</span>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+As we can see, the definition <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#unique"><span class="id" title="definition">unique</span></a></span> not just ensures that <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a></span>
+holds (the left conjunct), but also that any <span class="inlinecode"><a class="idref" href="PnP.HTT.html#x'"><span class="id" title="variable">x'</span></a></span> satisfying <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> is,
+in fact, equal to <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a></span>. As on the top level <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#unique"><span class="id" title="definition">unique</span></a></span> is merely a
+conjunction, it can be decomposed by <span class="inlinecode"><span class="id" title="tactic">case</span></span> and proved using the
+<span class="inlinecode"><span class="id" title="tactic">split</span></span> tactics.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+Next, let us make sure that the statement in the conclusion of lemma
+<span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.ExistsUnique1"><span class="id" title="lemma">ExistsUnique1</span></a></span>, in fact, admits predicates, satisfied by non-uniquely
+defined pair <span class="inlinecode">(<a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a>,</span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#y"><span class="id" title="variable">y</span></a>)</span>. You goal is to prove that the following
+predicate <span class="inlinecode"><a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a></span>, which obviously satisfied by <span class="inlinecode">(<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a>,</span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a>)</span>, <span class="inlinecode">(<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a>,</span>
+<span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a>)</span> and <span class="inlinecode">(<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a>,</span> <span class="inlinecode"><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a>)</span> is nevertheless a subject of the second
+statement.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <a name="BoolReflect.Q"><span class="id" title="definition">Q</span></a> <span class="id" title="var">x</span> <span class="id" title="var">y</span> : <span class="id" title="keyword">Prop</span> := <br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#9ddeac0ab66152bd1d64bedb507a795e"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">==</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#9ddeac0ab66152bd1d64bedb507a795e"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#9ddeac0ab66152bd1d64bedb507a795e"><span class="id" title="notation">&amp;&amp;</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#9ddeac0ab66152bd1d64bedb507a795e"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#y"><span class="id" title="variable">y</span></a> <span class="id" title="notation">==</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#true"><span class="id" title="constructor">true</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#9ddeac0ab66152bd1d64bedb507a795e"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#081ff67d3116402bb680e8692aa39185"><span class="id" title="notation">||</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#081ff67d3116402bb680e8692aa39185"><span class="id" title="notation">(</span></a><a class="idref" href="PnP.BoolReflect.html#x"><span class="id" title="variable">x</span></a> <span class="id" title="notation">==</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#false"><span class="id" title="constructor">false</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Datatypes.html#081ff67d3116402bb680e8692aa39185"><span class="id" title="notation">)</span></a>.<br/>
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.qlm"><span class="id" title="lemma">qlm</span></a> : (<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">∃</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">!</span></a><span class="id" title="var">x</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">,</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">∃</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">!</span></a><span class="id" title="var">y</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">,</span></a> <a class="idref" href="PnP.BoolReflect.html#BoolReflect.Q"><span class="id" title="definition">Q</span></a> <a class="idref" href="PnP.BoolReflect.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="PnP.BoolReflect.html#y"><span class="id" title="variable">y</span></a>).<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+ The following lemma <span class="inlinecode"><span class="id" title="abbreviation">eqxx</span></span>, stating that the boolean equality
+ <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a></span> <span class="inlinecode">==</span> <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a></span> always holds, might be useful for instantiating arguments
+ for hypotheses you will get during the proof.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <span class="id" title="abbreviation">eqxx</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<br/>
+<span class="inlinecode"><span class="id" title="abbreviation">eqxx</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span class="id" title="keyword">∀</span> (<a class="idref" href="PnP.HTT.html#HTT.LList.T"><span class="id" title="variable">T</span></a> : <span class="id" title="abbreviation">eqType</span>) (<a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a> : <a class="idref" href="PnP.HTT.html#HTT.LList.T"><span class="id" title="variable">T</span></a>), <a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a> == <a class="idref" href="PnP.LogicPrimer.html#x"><span class="id" title="variable">x</span></a>
+<div class="paragraph"> </div>
+
+</span>
+<div class="paragraph"> </div>
+
+Finally, you are invited to prove that the second statement is
+<i>strictly</i> weaker than the first one by proving the following lemma,
+which states that the reversed implication of the two statements for
+an arbitrary predicate <span class="inlinecode"><a class="idref" href="PnP.LogicPrimer.html#LogicPrimer.Connectives.P"><span class="id" title="axiom">P</span></a></span> implies falsehood.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <a name="BoolReflect.ExistsUnique2"><span class="id" title="lemma">ExistsUnique2</span></a> : <br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><span class="id" title="keyword">∀</span> <span class="id" title="var">A</span> (<span class="id" title="var">P</span> : <a class="idref" href="PnP.BoolReflect.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <a class="idref" href="PnP.BoolReflect.html#A"><span class="id" title="variable">A</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a> <span class="id" title="keyword">Prop</span>),<br/>
+&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">(</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">∃</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">!</span></a><span class="id" title="var">x</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">,</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">∃</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">!</span></a><span class="id" title="var">y</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">,</span></a> <a class="idref" href="PnP.BoolReflect.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="PnP.BoolReflect.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="PnP.BoolReflect.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a><br/>
+&nbsp;&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">(</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">∃</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">!</span></a><span class="id" title="var">x</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">,</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">∃</span></a> <span class="id" title="var">y</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">,</span></a> <a class="idref" href="PnP.BoolReflect.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="PnP.BoolReflect.html#x"><span class="id" title="variable">x</span></a> <a class="idref" href="PnP.BoolReflect.html#y"><span class="id" title="variable">y</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">∧</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">(</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">∃</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">!</span></a><span class="id" title="var">x</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a3726bd940c3c0e96cb8e13291e9ded4"><span class="id" title="notation">,</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">∃</span></a> <span class="id" title="var">y</span><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#a883bdd010993579f99d60b3775bcf54"><span class="id" title="notation">,</span></a> <a class="idref" href="PnP.BoolReflect.html#P"><span class="id" title="variable">P</span></a> <a class="idref" href="PnP.BoolReflect.html#y"><span class="id" title="variable">y</span></a> <a class="idref" href="PnP.BoolReflect.html#x"><span class="id" title="variable">x</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#ba2b0e492d2b4675a0acf3ea92aabadd"><span class="id" title="notation">)</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">)</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#1c93e43e07fbeaeb6a625cb6614beb5d"><span class="id" title="notation">→</span></a><br/>
+&nbsp;&nbsp;<a class="idref" href="http://coq.inria.fr/distrib/V8.11.0/stdlib//Coq.Init.Logic.html#False"><span class="id" title="inductive">False</span></a>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+
+</div>
+<div class="code">
+
+<br/>
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+<script src="https://jscoq.github.io/node_modules/jscoq/ui-js/jscoq-loader.js" type="text/javascript"></script>
+<script src="../js/jscoq-embed.js" type="text/javascript"></script>
+</html>
