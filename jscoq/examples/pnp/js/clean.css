@@ -1,0 +1,29 @@
+body {
+    padding: 0;
+    margin: 0;
+}
+#main {
+    padding: 40px;
+    text-align: justify;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 14px;
+    line-height: 1.42857143;
+}
+#main pre {
+    background: #f1f1f1;
+    padding: 0 2px;
+}
+#main .inlinecode {
+    font-family: Courier, monospace;
+}
+#main div.paragraph {
+    margin-bottom: 0.5em;
+}
+#main .CodeMirror.jscoq {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+    text-align: initial;
+}
+
