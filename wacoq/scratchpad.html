@@ -1,9 +1,3 @@
-<!--
-  This sample contains two very simple introductory exercises of
-  interactive proofs in Coq, one with natural numbers and one with lists.
-  It can be used as a gentle landing page, which requires no knowledge
-  of math-comp.
--->
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
@@ -11,6 +5,15 @@
     <meta name="description" content="An Online IDE for the Coq Theorem Prover" />
 
     <title>jsCoq – The Coq Theorem Prover Online IDE</title>
+    <style>
+      /* Allow some extra scroll space at the bottom */
+      .CodeMirror-scroll {
+        padding-bottom: 0 !important;
+      }
+      .CodeMirror-lines {
+        padding-bottom: 75% !important;
+      }
+    </style>
   </head>
 
 <body class="jscoq-main">
@@ -38,8 +41,12 @@
       document.getElementById('ide-wrapper')
               .setAttribute('data-filename', last_filename);
 
-    var coq;
-    (async () => { coq = await JsCoq.start(jscoq_opts); })();
+    (async () => {
+      coq = await JsCoq.start(jscoq_opts);
+
+      if (location.search == '?project') coq.openProject();
+      else if (location.search == '?project=sample') coq.openProject('sample');
+    })();
 
     window.addEventListener('beforeunload', () => {
       var sp = coq.provider.snippets[0];
